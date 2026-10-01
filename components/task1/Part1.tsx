@@ -13,6 +13,7 @@ import { PlacementBoard } from "@/components/ui/PlacementBoard";
 import { RevealHint } from "@/components/ui/RevealHint";
 import { WritingHelp } from "@/components/ui/WritingHelp";
 import { ExampleAnswer } from "@/components/ui/ExampleAnswer";
+import { Num } from "@/components/ui/CalcTable";
 import { BlockMissing } from "@/components/ui/BlockMissing";
 import { LEVEL_TAGS, LEVEL_TESTS, LINES, LINE_KEY } from "@/data/ladder";
 import type { LevelTag, LineId } from "@/data/ladder";
@@ -120,10 +121,19 @@ export function Block11() {
 
 /* ------------------------------------------------------------------ Block 1.2 */
 
-const row = (id: string, label: string, value: string) => (
+/** One printed row. Its number explains itself on click: what it counts and which figure uses it (CLAUDE.md #44, the user's request of 2026-10-01). */
+const usedIn = (en: string, de: string) => tt(en, de);
+const row = (id: string, label: string, value: string, usedIn: string) => (
   <tr id={id} className="border-t border-line">
     <td className="px-3 py-2">{label}</td>
-    <td className="tnum px-3 py-2 text-right font-semibold">{value}</td>
+    <td className="tnum px-3 py-2 text-right font-semibold">
+      <Num
+        id={id}
+        value={value}
+        what={label}
+        from={tt(`Printed in this case, in SmartData's usage and contract records (Case assumption). ${usedIn}`, `In diesem Fall gedruckt, aus den Nutzungs- und Vertragsdaten von SmartData (Fallannahme). ${usedIn}`)}
+      />
+    </td>
   </tr>
 );
 
@@ -165,10 +175,10 @@ export function Block12() {
           <table className="w-full border-collapse text-caption">
             <caption className="bg-mist px-3 py-2 text-left text-micro font-semibold uppercase text-ash">{tt("Last year · SmartData's usage records (Case assumption)", "Letztes Jahr · Nutzungsdaten von SmartData (Fallannahme)")}</caption>
             <tbody>
-              {row("fc-fall-customers", tt("Usage fell by 30% or more in a quarter · customers", "Nutzung in einem Quartal um 30 % oder mehr gesunken · Kunden"), num(SMART.falling.customers))}
-              {row("fc-fall-left", tt("Usage fell by 30% or more · left within six months", "Nutzung um 30 % oder mehr gesunken · innerhalb von sechs Monaten gegangen"), num(SMART.falling.left))}
-              {row("fc-stable-customers", tt("Usage stable or rising · customers", "Nutzung stabil oder steigend · Kunden"), num(SMART.stable.customers))}
-              {row("fc-stable-left", tt("Usage stable or rising · left within six months", "Nutzung stabil oder steigend · innerhalb von sechs Monaten gegangen"), num(SMART.stable.left))}
+              {row("fc-fall-customers", tt("Usage fell by 30% or more in a quarter · customers", "Nutzung in einem Quartal um 30 % oder mehr gesunken · Kunden"), num(SMART.falling.customers), usedIn("Used in F1: the customers in the group.", "Verwendet in F1: die Kunden der Gruppe."))}
+              {row("fc-fall-left", tt("Usage fell by 30% or more · left within six months", "Nutzung um 30 % oder mehr gesunken · innerhalb von sechs Monaten gegangen"), num(SMART.falling.left), usedIn("Used in F1: the leavers of the group.", "Verwendet in F1: die Abgänge der Gruppe."))}
+              {row("fc-stable-customers", tt("Usage stable or rising · customers", "Nutzung stabil oder steigend · Kunden"), num(SMART.stable.customers), usedIn("Used in F2: the customers of everyone else.", "Verwendet in F2: die Kunden aller übrigen."))}
+              {row("fc-stable-left", tt("Usage stable or rising · left within six months", "Nutzung stabil oder steigend · innerhalb von sechs Monaten gegangen"), num(SMART.stable.left), usedIn("Used in F2: the leavers of everyone else.", "Verwendet in F2: die Abgänge aller übrigen."))}
             </tbody>
           </table>
         </div>
@@ -176,13 +186,13 @@ export function Block12() {
           <div className="relative overflow-x-auto rounded-lg border border-line">
             <table className="w-full border-collapse text-caption">
               <caption className="bg-mist px-3 py-2 text-left text-micro font-semibold uppercase text-ash">{tt("This quarter", "Dieses Quartal")}</caption>
-              <tbody>{row("fc-now", tt("Customers whose usage fell by 30% or more", "Kunden mit um 30 % oder mehr gesunkener Nutzung"), num(SMART.fallingNow))}</tbody>
+              <tbody>{row("fc-now", tt("Customers whose usage fell by 30% or more", "Kunden mit um 30 % oder mehr gesunkener Nutzung"), num(SMART.fallingNow), usedIn("Used in F3: today's count, not last year's group.", "Verwendet in F3: die heutige Zahl, nicht die Gruppe des letzten Jahres."))}</tbody>
             </table>
           </div>
           <div className="relative overflow-x-auto rounded-lg border border-line">
             <table className="w-full border-collapse text-caption">
               <caption className="bg-mist px-3 py-2 text-left text-micro font-semibold uppercase text-ash">{tt("All customers", "Alle Kunden")}</caption>
-              <tbody>{row("fc-revenue", tt("Average yearly revenue per customer", "Durchschnittlicher Jahresumsatz pro Kunde"), euro(SMART.revenue))}</tbody>
+              <tbody>{row("fc-revenue", tt("Average yearly revenue per customer", "Durchschnittlicher Jahresumsatz pro Kunde"), euro(SMART.revenue), usedIn("Used in F3: what one customer pays in a year.", "Verwendet in F3: was ein Kunde im Jahr zahlt."))}</tbody>
             </table>
           </div>
         </div>

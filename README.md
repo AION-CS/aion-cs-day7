@@ -150,6 +150,8 @@ look for). Client-side convenience gate, not security; a reload locks it.
 24. **The four Word documents were rebuilt** (`../materi-task-docx/Day7_*`, CLAUDE.md #31): Core / Optional marks on every card and block, “The point” per card, the new card B6 with its picture and method table, Blocks 2.3 and 3.5 with the scene and who-does-what of every measure and item, “SmartData today”, the numbers Route 2 shows, the doubts table, and a glossary appendix regenerated from `data/glossary.ts`. All four pass `validate.py`. The reviewed Markdown is in `../materi-task-docx/_source/day7-*.md`.
 25. **Home page and route blurbs** now describe the four Core blocks of Route 1 and the two Core blocks of Route 2, and the two home-page pay-offs that Optional cards teach say so (CLAUDE.md #27).
 
+26. **Every number of a worked calculation explains itself (user request, 2026-10-01).** A number with an amber dotted underline opens a card in the bottom right corner saying what it is and where it comes from (`components/ui/CalcTable.tsx` `Num`, `components/chrome/NumberPanel.tsx`, `store/useNumExplain.ts`). Done for the four steps of Materi A4 (now a four-column table with an “In plain words” column), the cost, explanatory power and score cells of A7, the methods of B6 (every input and result), the “To pay back, it must keep” number on every item card of Block 3.5, and the six printed rows of Block 1.2 (each says which figure uses it). “The numbers you can use” also says every number in its line is one of the printed figures listed below it.
+
 ## Dependency checklist (CLAUDE.md #40)
 
 ✓ = reads only Core blocks, Core cards and the case brief. Optional items may read Core; nothing reads them back.

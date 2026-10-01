@@ -4,6 +4,7 @@ import { Bul, Diagram } from "@/components/materi/kit";
 import { BigDataLimits, ForecastExample, GutVsData, Ladder, LinkOrCause, PatternCurves, ScoreExample } from "@/components/materi/diagramsA";
 import { Callout, DataTable, MaterialCard } from "@/components/ui/MaterialCard";
 import { ShowMore } from "@/components/ui/ShowMore";
+import { CalcTable, Num } from "@/components/ui/CalcTable";
 import { LEVEL_TESTS } from "@/data/ladder";
 import { PATTERNS, PATTERN_IDS, PATTERN_PAIR_TESTS, RISK_RULE } from "@/data/patterns";
 import { EXPLAIN_RULE } from "@/data/measures";
@@ -128,15 +129,50 @@ export function CardA4() {
         <ForecastExample />
       </Diagram>
       <ShowMore id="A4" part="calc" label={tt("Show Weser Cloud's four steps in a table", "Die vier Schritte von Weser Cloud in einer Tabelle zeigen")}>
-        <DataTable
-          head={[tt("Step", "Schritt"), tt("Calculation · Weser Cloud", "Rechnung · Weser Cloud"), tt("Result", "Ergebnis")]}
-          rows={[
-            [tt("1 · Churn rate, usage fell", "1 · Churn Rate, Nutzung gesunken"), `${WESER.falling.left} ÷ ${WESER.falling.customers} × 100`, pct(r.rate)],
-            [tt("2 · Churn rate, everyone else", "2 · Churn Rate, alle übrigen"), `${WESER.stable.left} ÷ ${WESER.stable.customers} × 100`, pct(r.other)],
-            [tt("3 · Lift", "3 · Lift"), `${r.rate} ÷ ${r.other}`, tt(`${num(r.lift)} times`, `${num(r.lift)}-mal`)],
-            [tt("4 · Revenue at risk this year", "4 · Gefährdeter Umsatz in diesem Jahr"), `${WESER.fallingNow} × ${r.rate / 100} × ${euro(WESER.revenue)}`, euro(r.risk)],
-          ]}
+        <CalcTable
           caption={tt("The four steps, on other numbers than the task", "Die vier Schritte, mit anderen Zahlen als in der Aufgabe")}
+          rows={[
+            {
+              step: tt("1 · Churn rate, usage fell", "1 · Churn Rate, Nutzung gesunken"),
+              calc: (
+                <>
+                  <Num id="a4-5" value={String(WESER.falling.left)} what={tt("Weser customers whose usage fell by 30% or more last year and who then left within six months.", "Weser-Kunden, deren Nutzung letztes Jahr um 30 % oder mehr sank und die dann innerhalb von sechs Monaten gingen.")} from={tt("Weser Cloud's usage records, last year (Case assumption): the row “usage fell by 30% or more · left”. It is also printed on the bar in the picture above (“5 of 25”).", "Nutzungsdaten von Weser Cloud, letztes Jahr (Fallannahme): die Zeile „Nutzung um 30 % oder mehr gesunken · gegangen“. Sie steht auch am Balken im Bild oben („5 von 25“).")} /> ÷ <Num id="a4-25" value={String(WESER.falling.customers)} what={tt("All Weser customers whose usage fell by 30% or more last year, whether they left or stayed.", "Alle Weser-Kunden, deren Nutzung letztes Jahr um 30 % oder mehr sank, ob sie gingen oder blieben.")} from={tt("Weser Cloud's usage records, last year (Case assumption): the row “usage fell by 30% or more · customers”. Always take it from the same row as the leavers.", "Nutzungsdaten von Weser Cloud, letztes Jahr (Fallannahme): die Zeile „Nutzung um 30 % oder mehr gesunken · Kunden“. Nehmen Sie sie immer aus derselben Zeile wie die Abgänge.")} /> × <Num id="a4-100a" value="100" what={tt("Turns a share into a percentage: 0.20 of the customers becomes 20 out of every 100.", "Macht aus einem Anteil eine Prozentzahl: 0,20 der Kunden werden 20 von je 100.")} from={tt("A fixed number of the method, not from the data.", "Eine feste Zahl der Methode, nicht aus den Daten.")} />
+                </>
+              ),
+              result: <Num id="a4-r1" value={pct(r.rate)} what={tt("The churn rate of the group whose usage fell: of every 100 such customers, 20 left.", "Die Churn Rate der Gruppe mit gesunkener Nutzung: Von je 100 solchen Kunden gingen 20.")} from={tt("The sum on the left: 5 ÷ 25 × 100.", "Die Rechnung links: 5 ÷ 25 × 100.")} />,
+              plain: tt("Of the 25 customers whose usage fell, 5 left: that is 20 in every 100.", "Von den 25 Kunden mit gesunkener Nutzung gingen 5: das sind 20 von je 100."),
+            },
+            {
+              step: tt("2 · Churn rate, everyone else", "2 · Churn Rate, alle übrigen"),
+              calc: (
+                <>
+                  <Num id="a4-12" value={String(WESER.stable.left)} what={tt("Weser customers whose usage was stable or rising last year and who still left within six months.", "Weser-Kunden, deren Nutzung letztes Jahr stabil blieb oder stieg und die trotzdem innerhalb von sechs Monaten gingen.")} from={tt("Weser Cloud's usage records, last year (Case assumption): the row “usage stable or rising · left”.", "Nutzungsdaten von Weser Cloud, letztes Jahr (Fallannahme): die Zeile „Nutzung stabil oder steigend · gegangen“.")} /> ÷ <Num id="a4-300" value={String(WESER.stable.customers)} what={tt("All Weser customers whose usage was stable or rising last year.", "Alle Weser-Kunden, deren Nutzung letztes Jahr stabil blieb oder stieg.")} from={tt("Weser Cloud's usage records, last year (Case assumption): the row “usage stable or rising · customers”.", "Nutzungsdaten von Weser Cloud, letztes Jahr (Fallannahme): die Zeile „Nutzung stabil oder steigend · Kunden“.")} /> × <Num id="a4-100b" value="100" what={tt("Turns a share into a percentage.", "Macht aus einem Anteil eine Prozentzahl.")} from={tt("A fixed number of the method, not from the data.", "Eine feste Zahl der Methode, nicht aus den Daten.")} />
+                </>
+              ),
+              result: <Num id="a4-r2" value={pct(r.other)} what={tt("The churn rate of all the other customers: of every 100, 4 left.", "Die Churn Rate aller übrigen Kunden: Von je 100 gingen 4.")} from={tt("The sum on the left: 12 ÷ 300 × 100.", "Die Rechnung links: 12 ÷ 300 × 100.")} />,
+              plain: tt("Of the 300 other customers, 12 left: that is 4 in every 100. This is the normal level to compare with.", "Von den 300 übrigen Kunden gingen 12: das sind 4 von je 100. Das ist das normale Niveau zum Vergleichen."),
+            },
+            {
+              step: tt("3 · Lift", "3 · Lift"),
+              calc: (
+                <>
+                  <Num id="a4-l1" value={String(r.rate)} what={tt("The churn rate of the group whose usage fell, in percent.", "Die Churn Rate der Gruppe mit gesunkener Nutzung, in Prozent.")} from={tt("The result of step 1.", "Das Ergebnis von Schritt 1.")} /> ÷ <Num id="a4-l2" value={String(r.other)} what={tt("The churn rate of everyone else, in percent.", "Die Churn Rate aller übrigen, in Prozent.")} from={tt("The result of step 2.", "Das Ergebnis von Schritt 2.")} />
+                </>
+              ),
+              result: <Num id="a4-r3" value={tt(`${num(r.lift)} times`, `${num(r.lift)}-mal`)} what={tt("The lift: customers whose usage fell left 5 times as often as everyone else.", "Der Lift: Kunden mit gesunkener Nutzung gingen 5-mal so oft wie alle übrigen.")} from={tt("The sum on the left: 20 ÷ 4. A lift of 1 would mean no difference.", "Die Rechnung links: 20 ÷ 4. Ein Lift von 1 hieße: kein Unterschied.")} />,
+              plain: tt("Customers whose usage fell left 5 times as often as the others. That is why falling usage is a warning sign.", "Kunden mit gesunkener Nutzung gingen 5-mal so oft wie die anderen. Darum ist sinkende Nutzung ein Warnzeichen."),
+            },
+            {
+              step: tt("4 · Revenue at risk this year", "4 · Gefährdeter Umsatz in diesem Jahr"),
+              calc: (
+                <>
+                  <Num id="a4-30" value={String(WESER.fallingNow)} what={tt("Weser customers whose usage has fallen by 30% or more this quarter: the group that may leave now.", "Weser-Kunden, deren Nutzung in diesem Quartal um 30 % oder mehr gesunken ist: die Gruppe, die jetzt gehen könnte.")} from={tt("Today's count (the slider's starting value in the picture above). It is not last year's group of 25.", "Die heutige Zahl (der Startwert des Reglers im Bild oben). Es ist nicht die Gruppe von 25 vom letzten Jahr.")} /> × <Num id="a4-02" value={String(r.rate / 100)} what={tt("The churn rate of step 1 written as a share of one: 20% becomes 0.20.", "Die Churn Rate aus Schritt 1 als Anteil von eins: 20 % werden 0,20.")} from={tt("Step 1 divided by 100: 20 ÷ 100.", "Schritt 1 geteilt durch 100: 20 ÷ 100.")} /> × <Num id="a4-12000" value={euro(WESER.revenue)} what={tt("What an average Weser customer pays in a year.", "Was ein durchschnittlicher Weser-Kunde im Jahr zahlt.")} from={tt("Weser Cloud's contract records (Case assumption): the row “average yearly revenue per customer”.", "Vertragsdaten von Weser Cloud (Fallannahme): die Zeile „durchschnittlicher Jahresumsatz pro Kunde“.")} />
+                </>
+              ),
+              result: <Num id="a4-r4" value={euro(r.risk)} what={tt("The yearly revenue that is at risk if the 30 customers leave at last year's rate.", "Der Jahresumsatz, der gefährdet ist, wenn die 30 Kunden mit der Rate des letzten Jahres gehen.")} from={tt("The sum on the left: 30 × 0.2 × €12,000. It is an estimate, not a certain loss.", "Die Rechnung links: 30 × 0,2 × 12.000 €. Es ist eine Schätzung, kein sicherer Verlust.")} />,
+              plain: tt("About 6 of these 30 customers would leave (30 × 0.2), and each pays €12,000 a year: about €72,000 is at risk.", "Etwa 6 dieser 30 Kunden würden gehen (30 × 0,2), und jeder zahlt 12.000 € im Jahr: etwa 72.000 € sind gefährdet."),
+            },
+          ]}
         />
       </ShowMore>
     </MaterialCard>

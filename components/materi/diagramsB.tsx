@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import clsx from "clsx";
 import { Insight, Story, ThePoint, Toggles, useStory } from "@/components/materi/kit";
+import { Num } from "@/components/ui/CalcTable";
 import { CASES_MIN, LIFT_ACT, LIFT_WATCH } from "@/data/route2";
 import { bi, euro, num, t, tt } from "@/lib/lang";
 import { Gloss } from "@/lib/glossify";
@@ -455,6 +456,61 @@ function isarMethod(id: MethodId) {
   }
 }
 
+
+/** Every number of a method with what it is and where it comes from, so a learner can click any of them (CLAUDE.md #44, the user's request of 2026-10-01). */
+function isarParts(id: MethodId): { v: string; what: string; from: string }[] {
+  const printed = tt("Isar Hosting's printed figures (Case assumption).", "Gedruckte Zahlen von Isar Hosting (Fallannahme).");
+  const result = tt("The result of the steps above.", "Das Ergebnis der Schritte oben.");
+  const fixed = tt("A fixed number of the method, not from the data.", "Eine feste Zahl der Methode, nicht aus den Daten.");
+  switch (id) {
+    case "weak":
+      return [
+        { v: `${ISAR.usage}%`, what: tt("How complete Isar's platform usage logs are: the share of customers for whom they hold data.", "Wie vollständig Isars Plattform-Nutzungslogs sind: der Anteil der Kunden, für die sie Daten haben."), from: printed },
+        { v: `${ISAR.invoices}%`, what: tt("How complete Isar's invoice data is.", "Wie vollständig Isars Rechnungsdaten sind."), from: printed },
+        { v: `${Math.min(ISAR.usage, ISAR.invoices)}%`, what: tt("The weakest of the two: a joined list cannot be more complete than this.", "Die schwächere der beiden: Eine verbundene Liste kann nicht vollständiger sein."), from: result },
+      ];
+    case "gap":
+      return [
+        { v: String(ISAR.caughtByRule), what: tt("Leavers whose usage had fallen before they left: the ones today's usage rule alone would have caught.", "Abgänge, deren Nutzung vor dem Gehen gesunken war: die, die die heutige Nutzungsregel allein gefangen hätte."), from: printed },
+        { v: String(ISAR.leavers), what: tt("All customers who left last year.", "Alle Kunden, die letztes Jahr gingen."), from: printed },
+        { v: "30%", what: tt("The share the rule catches today: 9 ÷ 30.", "Der Anteil, den die Regel heute fängt: 9 ÷ 30."), from: tt("9 ÷ 30 × 100.", "9 ÷ 30 × 100.") },
+        { v: "35", what: tt("Half of the 70 points that are still missing from 100%.", "Die Hälfte der 70 Punkte, die noch bis 100 % fehlen."), from: tt("(100 − 30) ÷ 2: the “half the gap” rule.", "(100 − 30) ÷ 2: die Regel „halbe Lücke“.") },
+        { v: `${near5(30 + 35)}%`, what: tt("The target for the new score: 30 + 35 = 65, rounded to the nearest 5.", "Das Ziel für den neuen Score: 30 + 35 = 65, auf die nächsten 5 gerundet."), from: result },
+      ];
+    case "calls":
+      return [
+        { v: String(ISAR.flagged), what: tt("Customers Isar has flagged as at risk now.", "Kunden, die Isar jetzt als gefährdet markiert hat."), from: printed },
+        { v: String(ISAR.weeksQuarter), what: tt("Weeks in a quarter.", "Wochen in einem Quartal."), from: tt("A calendar fact: a quarter has 13 weeks.", "Eine Kalenderzahl: Ein Quartal hat 13 Wochen.") },
+        { v: String(Math.ceil(ISAR.flagged / ISAR.weeksQuarter)), what: tt("Flagged customers that must be called each week to reach everyone within the quarter (39 ÷ 13 = 3, rounded up).", "Markierte Kunden, die jede Woche angerufen werden müssen, um im Quartal alle zu erreichen (39 ÷ 13 = 3, aufgerundet)."), from: result },
+      ];
+    case "worth":
+      return [
+        { v: String(ISAR.group), what: tt("Customers in the group the forecast is about.", "Kunden in der Gruppe, um die es in der Prognose geht."), from: printed },
+        { v: `${num(100 / ISAR.group, { maximumFractionDigits: 1 })}`, what: tt("What one customer is worth in percentage points: if one more leaves, the group's churn moves by this much.", "Was ein Kunde in Prozentpunkten wert ist: Geht einer mehr, verschiebt sich der Churn der Gruppe um so viel."), from: tt("100 ÷ 25.", "100 ÷ 25.") },
+        { v: String((2 * 100) / ISAR.group), what: tt("Two customers' worth: a miss up to this size can be chance, a bigger one is a real error.", "Der Wert von zwei Kunden: Eine Abweichung bis zu dieser Größe kann Zufall sein, eine größere ist ein echter Fehler."), from: tt("2 × 100 ÷ 25.", "2 × 100 ÷ 25.") },
+      ];
+    case "majority":
+      return [
+        { v: String(ISAR.managers), what: tt("Support agents who should use the new tags.", "Support-Mitarbeiter, die die neuen Tags nutzen sollen."), from: printed },
+        { v: "2 ÷ 3", what: tt("Two thirds: the usual mark of a clear majority.", "Zwei Drittel: die übliche Marke für eine klare Mehrheit."), from: fixed },
+        { v: String(Math.ceil((ISAR.managers * 2) / 3)), what: tt("The least number of agents that counts as a clear majority (6 × 2 ÷ 3 = 4).", "Die kleinste Zahl von Mitarbeitern, die als klare Mehrheit zählt (6 × 2 ÷ 3 = 4)."), from: result },
+      ];
+    case "wait":
+      return [
+        { v: euro(ISAR.itemCost), what: tt("What the item you left out would cost.", "Was der weggelassene Punkt kosten würde."), from: printed },
+        { v: euro(ISAR.revenue), what: tt("What one customer brings Isar in a year.", "Was ein Kunde Isar im Jahr einbringt."), from: printed },
+        { v: String(Math.ceil(ISAR.itemCost / ISAR.revenue)), what: tt("Customers whose yearly revenue adds up to the item's cost: when this many have left for the reason the item would fix, waiting has cost as much as the item.", "Kunden, deren Jahresumsatz zusammen die Kosten des Punkts ergibt: Sind so viele aus dem Grund gegangen, den der Punkt beheben würde, hat das Warten so viel gekostet wie der Punkt."), from: tt("45,000 ÷ 15,000.", "45.000 ÷ 15.000.") },
+      ];
+    default:
+      return [
+        { v: String(ISAR.start), what: tt("The month the item starts.", "Der Monat, in dem der Punkt startet."), from: tt("The learner's own choice (here Isar's).", "Die eigene Wahl des Lernenden (hier die von Isar).") },
+        { v: String(Math.ceil(ISAR.weeks / 4)), what: tt("Months of set-up: 6 weeks ÷ 4 weeks a month, rounded up.", "Monate der Einrichtung: 6 Wochen ÷ 4 Wochen pro Monat, aufgerundet."), from: tt("The item card prints “6 weeks to be in use”.", "Die Karte des Punkts nennt „6 Wochen bis zum Einsatz“.") },
+        { v: String(ISAR.respond), what: tt("Months until the effect shows after the item is in use.", "Monate, bis sich die Wirkung zeigt, nachdem der Punkt im Einsatz ist."), from: tt("Printed on the item card as “effect shows”.", "Auf der Karte des Punkts als „Wirkung zeigt sich“ gedruckt.") },
+        { v: String(ISAR.start + Math.ceil(ISAR.weeks / 4) + ISAR.respond), what: tt("The first month in which the trigger can be read.", "Der erste Monat, in dem sich der Trigger lesen lässt."), from: result },
+      ];
+  }
+}
+
 export function NumberMethods() {
   const uid = useId().replace(/:/g, "");
   const [m, setMRaw] = useState<MethodId>("weak");
@@ -542,6 +598,15 @@ export function NumberMethods() {
         <p className="mt-1 tnum">
           <span className="font-semibold text-ink">{tt("The number. ", "Die Zahl. ")}</span>
           <strong>{`${num(d.result, { maximumFractionDigits: 1 })}${d.unit}`}</strong> · {d.for}
+        </p>
+        <p className="mt-2">
+          <span className="font-semibold text-ink">{tt("What each number is, and where it comes from (click one). ", "Was jede Zahl ist und woher sie kommt (klicken Sie eine an). ")}</span>
+          {isarParts(m).map((x, i) => (
+            <span key={x.v + i}>
+              {i > 0 ? " · " : ""}
+              <Num id={`b6-${m}-${i}`} value={x.v} what={x.what} from={x.from} />
+            </span>
+          ))}
         </p>
       </div>
       <Insight>

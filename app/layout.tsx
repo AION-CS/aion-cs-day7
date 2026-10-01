@@ -6,6 +6,7 @@ import { ParticipantStrip } from "@/components/chrome/ParticipantStrip";
 import { StoreHydrator } from "@/components/chrome/StoreHydrator";
 import { MentorBar } from "@/components/chrome/MentorBar";
 import { GlossaryPanel } from "@/components/chrome/GlossaryPanel";
+import { NumberPanel } from "@/components/chrome/NumberPanel";
 import { LangProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <Footer />
           <GlossaryPanel />
+          <NumberPanel />
         </LangProvider>
       </body>
     </html>

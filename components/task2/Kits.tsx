@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Num } from "@/components/ui/CalcTable";
 import { SentenceKit } from "@/components/ui/SentenceKit";
 import type { KitRow } from "@/components/ui/SentenceKit";
 import { ARCH_BY_ID, OWNERS, R2_FIG, R2_MONTHS } from "@/data/route2";
@@ -194,7 +195,15 @@ export function ArchFacts({ id, r2 }: { id: ArchId; r2: R2State }) {
       </div>
       <div>
         <dt className="smallcaps text-ash">{tt("To pay back, it must keep", "Zum Bezahltmachen muss er halten")}</dt>
-        <dd className="text-ink">{tt(`${pv.result} customers who would otherwise leave (${euro(R2_FIG.revenue)} a year each)`, `${pv.result} Kunden, die sonst gingen (je ${euro(R2_FIG.revenue)} im Jahr)`)}</dd>
+        <dd className="text-ink">
+          <Num
+            id={`pay-${id}`}
+            value={String(pv.result)}
+            what={tt(`The number of customers this item must keep from leaving to earn back its own cost of ${euro(a.cost)}.`, `Die Zahl der Kunden, die dieser Punkt vom Gehen abhalten muss, um seine eigenen Kosten von ${euro(a.cost)} zurückzuverdienen.`)}
+            from={tt(`${pv.show}: the item's cost (printed on this card) divided by what one customer brings in a year (“SmartData today”, ${euro(R2_FIG.revenue)}).`, `${pv.show}: die Kosten des Punkts (auf dieser Karte gedruckt) geteilt durch das, was ein Kunde im Jahr bringt („SmartData heute“, ${euro(R2_FIG.revenue)}).`)}
+          />{" "}
+          {tt(`customers who would otherwise leave (${euro(R2_FIG.revenue)} a year each)`, `Kunden, die sonst gingen (je ${euro(R2_FIG.revenue)} im Jahr)`)}
+        </dd>
       </div>
       <div>
         <dt className="smallcaps text-ash">{tt("Its effect shows", "Seine Wirkung zeigt sich")}</dt>

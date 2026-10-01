@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import clsx from "clsx";
 import { Insight, Story, ThePoint, Toggles, useStory } from "@/components/materi/kit";
+import { Num } from "@/components/ui/CalcTable";
 import { LEVEL_LABEL } from "@/data/ladder";
 import type { LevelTag } from "@/data/ladder";
 import { WESER, WESER_RESULT, atRisk } from "@/data/forecast";
@@ -618,8 +619,22 @@ export function ScoreExample() {
                     {EVIDENCE_LABEL[r.evidence]}
                   </button>
                 </td>
-                <td className="tnum px-3 py-2">{euro(r.cost)}</td>
-                <td className="tnum px-3 py-2 font-semibold">{r.exp}</td>
+                <td className="tnum px-3 py-2">
+                  <Num
+                    id={`a7-cost-${r.id}`}
+                    value={euro(r.cost)}
+                    what={tt(`What “${r.name}” would cost Weser Cloud.`, `Was „${r.name}“ Weser Cloud kosten würde.`)}
+                    from={tt(`Weser Cloud's plan (Case assumption). The three measures together are compared with the ${euro(BUD_W)} budget below the table.`, `Plan von Weser Cloud (Fallannahme). Die drei Maßnahmen zusammen werden unter der Tabelle mit dem Budget von ${euro(BUD_W)} verglichen.`)}
+                  />
+                </td>
+                <td className="tnum px-3 py-2 font-semibold">
+                  <Num
+                    id={`a7-exp-${r.id}`}
+                    value={String(r.exp)}
+                    what={tt(`Explanatory power ${r.exp} (of 3): how strong the evidence behind the measure is.`, `Erklärungskraft ${r.exp} (von 3): wie stark die Evidenz hinter der Maßnahme ist.`)}
+                    from={tt(`It is read, not guessed, from what the measure rests on: “${EVIDENCE_LABEL[r.evidence]}”. The rule: a pattern across many customers scores 3, some evidence 2, a hunch 1. Click the grey “rests on” line to change it.`, `Sie wird gelesen, nicht geschätzt, aus dem, worauf die Maßnahme ruht: „${EVIDENCE_LABEL[r.evidence]}“. Die Regel: ein Muster über viele Kunden ergibt 3, etwas Evidenz 2, ein Bauchgefühl 1. Klicken Sie die graue „ruht auf“-Zeile, um sie zu ändern.`)}
+                  />
+                </td>
                 <td className="px-3 py-2">
                   <button type="button" onClick={() => cycle(r.id, "fea")} className="btn-ghost btn-sm min-w-[3rem]" aria-label={tt(`Feasibility of ${r.name}: ${r.fea}. Click to change.`, `Machbarkeit von ${r.name}: ${r.fea}. Klicken zum Ändern.`)}>
                     {r.fea}
@@ -630,7 +645,14 @@ export function ScoreExample() {
                     {r.eff}
                   </button>
                 </td>
-                <td className="tnum px-3 py-2 text-right font-bold">{r.score}</td>
+                <td className="tnum px-3 py-2 text-right font-bold">
+                  <Num
+                    id={`a7-score-${r.id}`}
+                    value={String(r.score)}
+                    what={tt(`The score of this measure: ${r.exp} × ${r.fea} × ${r.eff} = ${r.score}.`, `Der Wert dieser Maßnahme: ${r.exp} × ${r.fea} × ${r.eff} = ${r.score}.`)}
+                    from={tt("Explanatory power (read from the evidence) × feasibility × effect, the three columns to the left. The highest possible score is 27, the lowest 1.", "Erklärungskraft (aus der Evidenz gelesen) × Machbarkeit × Wirkung, die drei Spalten links. Der höchste Wert ist 27, der niedrigste 1.")}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

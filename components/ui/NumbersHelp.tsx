@@ -45,6 +45,7 @@ export function NumbersHelp({ id, card = "B6", calcs }: { id: string; card?: Mat
                   <p className="tnum">
                     <strong className="text-body">{c.fmt ? c.fmt(v.result) : num(v.result, { maximumFractionDigits: 2 })}</strong> <span className="text-ash">= {v.show}</span>
                   </p>
+                  <p className="text-micro normal-case tracking-normal text-ash">{tt("Every number in this line is one of the printed figures listed under “Where to find it”; the rest is the method.", "Jede Zahl in dieser Zeile ist eine der gedruckten Zahlen unter „Wo Sie es finden“; der Rest ist die Methode.")}</p>
                   <p>
                     <span className="smallcaps mr-1.5 text-accent">{tt("Why this number", "Warum diese Zahl")}</span>
                     <Gloss>{v.why}</Gloss>
