@@ -110,3 +110,19 @@ export const UNCERTAINTIES = bi([
   { id: "moredata" as UncId, label: t("The more data we collect, the more certain the forecast", "Je mehr Daten wir sammeln, desto sicherer die Prognose"), real: false, why: t("More of the wrong data adds noise. What helps is data that is linked to a decision and of good quality (Materi A3).", "Mehr von den falschen Daten erzeugt Rauschen. Was hilft, sind Daten, die mit einer Entscheidung verbunden und von guter Qualität sind (Materi A3).") },
 ]);
 export const UNC_BY_ID = Object.fromEntries(UNCERTAINTIES.map((w) => [w.id, w])) as Record<UncId, (typeof UNCERTAINTIES)[number]>;
+
+/** The decisive phrase inside each record's own text, for “Highlight the key words” (CLAUDE.md #4: every record at once, never which pattern). */
+export const REC_KEY: Record<string, string> = bi({
+  p01: t("logins steady at about 400 a month", "Logins stabil bei etwa 400 im Monat"),
+  p02: t("Added a third service this year", "Hat dieses Jahr einen dritten Service ergänzt"),
+  p03: t("with flat usage all year", "mit gleichbleibender Nutzung das ganze Jahr"),
+  p04: t("Logins fell from 300 to 110 a month over two quarters", "Die Logins sanken über zwei Quartale von 300 auf 110 im Monat"),
+  p05: t("Used four services for two years; now down to two", "Nutzte zwei Jahre lang vier Services; jetzt nur noch zwei"),
+  p06: t("then logins dropped by 40% in one quarter", "dann sanken die Logins in einem Quartal um 40 %"),
+  p07: t("about 12 times a month since, never more", "etwa 12-mal im Monat angemeldet, nie mehr"),
+  p08: t("one user account out of 25 licences is active", "ein Nutzerkonto von 25 Lizenzen ist aktiv"),
+  p09: t("with a few logins a month since day one", "mit wenigen Logins im Monat seit dem ersten Tag"),
+  p10: t("then heavy use every autumn", "dann jeden Herbst starke Nutzung"),
+  p11: t("at the start of each new construction project", "zu Beginn jedes neuen Bauprojekts"),
+  p12: t("as in each of the last three years", "wie in jedem der letzten drei Jahre"),
+});

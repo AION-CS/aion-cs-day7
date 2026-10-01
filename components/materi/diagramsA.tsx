@@ -1,7 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Insight, Toggles } from "@/components/materi/kit";
+import clsx from "clsx";
+import { Insight, Story, ThePoint, Toggles, useStory } from "@/components/materi/kit";
 import { LEVEL_LABEL } from "@/data/ladder";
 import type { LevelTag } from "@/data/ladder";
 import { WESER, WESER_RESULT, atRisk } from "@/data/forecast";
@@ -14,9 +15,14 @@ import { bi, euro, num, pct, t, tt } from "@/lib/lang";
 /**
  * The interactive diagrams of Materi A (Route 1). Every one uses the worked-example company Weser Cloud (a Bremen cloud provider,
  * Case assumption), never SmartData, so the answer to a task block is never printed. Every control is followed by an always-visible
- * "What this shows" (CLAUDE.md #20).
+ * "What this shows" (CLAUDE.md #20), every picture opens with "The point" and carries a three-step "Walk me through it" story that
+ * drives the real controls (CLAUDE.md #36); a manual button leaves the story.
  */
+/** "In plain words:" leads every reading of a control (CLAUDE.md #36). */
+const plain = () => tt("In plain words: ", "In einfachen Worten: ");
 const C = { ink: "#1F2328", ash: "#59606A", paper: "#FFFEFA", mist: "#ECE6D6", line: "#D8D1BF", amber: "#8A5A0B", gold: "#D99A2B", teal: "#0F6B6B", tealSoft: "#DFEEEB", rust: "#A4472A", data: "#2F5D62", grey: "#8B9098", soft: "#FBF0D6" };
+/** A dashed amber ring that moves with the story step (the spotlight): colour is never the only channel, the “Look at” line says it in words. */
+const SPOT = "outline outline-2 -outline-offset-2 outline-dashed outline-[#8A5A0B] anim-pulse";
 
 /* ------------------------------------------------------------------ A1 · gut feeling against data */
 
@@ -33,26 +39,69 @@ const W_CUST: WCust[] = [
 ];
 type Lens = "gut" | "data";
 const flaggedBy = (c: WCust, lens: Lens) => (lens === "gut" ? c.loud : c.drop <= -30);
+const countOf = (lens: Lens) => {
+  const flagged = W_CUST.filter((c) => flaggedBy(c, lens));
+  return { flagged: flagged.length, caught: flagged.filter((c) => c.left).length, falseAlarm: flagged.filter((c) => !c.left).length, leavers: W_CUST.filter((c) => c.left).length };
+};
 
 export function GutVsData() {
   const uid = useId().replace(/:/g, "");
-  const [lens, setLens] = useState<Lens>("gut");
-  const [reveal, setReveal] = useState(false);
-  const flagged = W_CUST.filter((c) => flaggedBy(c, lens));
-  const leavers = W_CUST.filter((c) => c.left);
-  const caught = flagged.filter((c) => c.left).length;
-  const falseAlarm = flagged.filter((c) => !c.left).length;
+  const [lens, setLensRaw] = useState<Lens>("gut");
+  const [reveal, setRevealRaw] = useState(false);
+  const d = countOf("data");
+  const g = countOf("gut");
+  const story = useStory([
+    {
+      title: tt("Data sees the quiet ones", "Daten sehen die Stillen"),
+      say: tt(`Weser Cloud is an example company, not your case. Its usage data flags the ${d.flagged} customers whose use fell by 30%. All ${d.leavers} who left are among them.`, `Weser Cloud ist ein Beispielunternehmen, nicht Ihr Fall. Seine Nutzungsdaten markieren die ${d.flagged} Kunden, deren Nutzung um 30 % sank. Alle ${d.leavers}, die gingen, sind darunter.`),
+      look: tt("the amber cards, and the “✕ left” marks", "die bernsteinfarbenen Karten und die Markierungen „✕ gegangen“"),
+      apply: () => {
+        setLensRaw("data");
+        setRevealRaw(true);
+      },
+    },
+    {
+      title: tt("Memory sees the loud ones", "Das Gedächtnis sieht die Lauten"),
+      say: tt(`Its account managers call the customers they remember: the ${g.flagged} who are often in touch. Only ${g.caught} of the ${g.leavers} who left is among them.`, `Seine Account Manager rufen die Kunden an, an die sie sich erinnern: die ${g.flagged}, die sich oft melden. Nur ${g.caught} der ${g.leavers} Kunden, die gingen, ist darunter.`),
+      look: tt("the amber cards: most are not marked “✕ left”", "die bernsteinfarbenen Karten: die meisten tragen kein „✕ gegangen“"),
+      apply: () => {
+        setLensRaw("gut");
+        setRevealRaw(true);
+      },
+    },
+    {
+      title: tt("The point", "Das Wichtigste"),
+      say: tt("The customers who leave go quiet first, so memory misses them. Data sees quiet customers too, but a person must still read the exceptions. Try both buttons.", "Kunden, die gehen, werden zuerst still, also übersieht sie das Gedächtnis. Daten sehen auch stille Kunden, aber ein Mensch muss die Ausnahmen trotzdem lesen. Probieren Sie beide Schaltflächen."),
+      look: tt("Kranbau Ost: flagged by the data, and it stayed", "Kranbau Ost: von den Daten markiert, und er blieb"),
+      apply: () => {
+        setLensRaw("data");
+        setRevealRaw(true);
+      },
+    },
+  ]);
+  const setLens = (l: Lens) => {
+    story.leave();
+    setLensRaw(l);
+  };
+  const toggleReveal = () => {
+    story.leave();
+    setRevealRaw((r) => !r);
+  };
+  const { flagged, caught, falseAlarm, leavers } = countOf(lens);
   return (
     <div className="space-y-3">
+      <ThePoint>{tt("Customers who are about to leave go quiet first. A list built from memory picks the loud customers and misses them; a list built from usage data sees every customer the same way.", "Kunden, die gleich gehen, werden zuerst still. Eine Liste aus dem Gedächtnis wählt die lauten Kunden und übersieht sie; eine Liste aus Nutzungsdaten sieht jeden Kunden gleich an.")}</ThePoint>
+      <Story steps={story.plan} step={story.step} onStep={story.go} />
       <svg viewBox="0 0 560 210" className="mx-auto h-auto w-full max-w-[600px]" role="img" aria-labelledby={`${uid}-t ${uid}-d`}>
         <title id={`${uid}-t`}>{tt("Eight Weser Cloud customers: who gets a call, and who left", "Acht Kunden von Weser Cloud: wer einen Anruf bekommt, und wer ging")}</title>
-        <desc id={`${uid}-d`}>{tt(`${flagged.length} customers flagged, ${caught} of ${leavers.length} leavers among them.`, `${flagged.length} Kunden markiert, ${caught} von ${leavers.length} Abgängen darunter.`)}</desc>
+        <desc id={`${uid}-d`}>{tt(`${flagged} customers flagged, ${caught} of ${leavers} leavers among them.`, `${flagged} Kunden markiert, ${caught} von ${leavers} Abgängen darunter.`)}</desc>
         {W_CUST.map((c, i) => {
           const x = 20 + (i % 4) * 135;
           const y = 16 + Math.floor(i / 4) * 96;
           const f = flaggedBy(c, lens);
           return (
             <g key={c.id}>
+              {story.step !== null && f && <rect x={x - 5} y={y - 5} width="130" height="90" rx="11" fill="none" stroke={C.amber} strokeWidth="2" strokeDasharray="5 4" className="anim-pulse" />}
               <rect x={x} y={y} width="120" height="80" rx="8" fill={f ? C.soft : C.paper} stroke={f ? C.amber : C.line} strokeWidth={f ? 2.4 : 1.2} />
               <text x={x + 60} y={y + 22} textAnchor="middle" fontSize="12.5" fontWeight="700" fill={C.ink}>{c.name}</text>
               <text x={x + 60} y={y + 42} textAnchor="middle" fontSize="11" fill={C.ash}>{c.loud ? tt("often in touch", "meldet sich oft") : tt("quiet", "still")}</text>
@@ -66,16 +115,17 @@ export function GutVsData() {
       </svg>
       <div className="flex flex-wrap items-center gap-3">
         <Toggles<Lens> label={tt("Who gets a call", "Wer einen Anruf bekommt")} value={lens} onChange={setLens} options={[{ id: "gut", label: tt("Account managers' feeling", "Gefühl der Account Manager") }, { id: "data", label: tt("Usage data (drop of 30% or more)", "Nutzungsdaten (Rückgang ab 30 %)") }]} />
-        <Toggles<string> label={tt("Outcome", "Ergebnis")} value={reveal ? "on" : null} onChange={() => setReveal((r) => !r)} options={[{ id: "on", label: reveal ? tt("Hide who left", "Verbergen, wer ging") : tt("Show who left", "Zeigen, wer ging") }]} />
+        <Toggles<string> label={tt("Outcome", "Ergebnis")} value={reveal ? "on" : null} onChange={toggleReveal} options={[{ id: "on", label: reveal ? tt("Hide who left", "Verbergen, wer ging") : tt("Show who left", "Zeigen, wer ging") }]} />
       </div>
       <Insight>
+        {plain()}
         {!reveal
           ? lens === "gut"
-            ? tt(`The account managers would call ${flagged.length} customers: the ones who are often in touch. Press “Show who left” to see whether that was the right list.`, `Die Account Manager würden ${flagged.length} Kunden anrufen: die, die sich oft melden. Drücken Sie „Zeigen, wer ging“, um zu sehen, ob das die richtige Liste war.`)
-            : tt(`The usage data flags ${flagged.length} customers whose use fell by 30% or more, most of them quiet. Press “Show who left” to compare.`, `Die Nutzungsdaten markieren ${flagged.length} Kunden, deren Nutzung um 30 % oder mehr sank, die meisten still. Drücken Sie „Zeigen, wer ging“, um zu vergleichen.`)
+            ? tt(`The account managers would call ${flagged} customers: the ones who are often in touch. Press “Show who left” to see whether that was the right list.`, `Die Account Manager würden ${flagged} Kunden anrufen: die, die sich oft melden. Drücken Sie „Zeigen, wer ging“, um zu sehen, ob das die richtige Liste war.`)
+            : tt(`The usage data flags ${flagged} customers whose use fell by 30% or more, most of them quiet. Press “Show who left” to compare.`, `Die Nutzungsdaten markieren ${flagged} Kunden, deren Nutzung um 30 % oder mehr sank, die meisten still. Drücken Sie „Zeigen, wer ging“, um zu vergleichen.`)
           : lens === "gut"
-            ? tt(`Gut feeling caught ${caught} of ${leavers.length} customers who left, and spent ${falseAlarm} calls on customers who stayed. The loud customers were not the leaving ones: the ones who left went quiet.`, `Das Bauchgefühl fand ${caught} von ${leavers.length} Kunden, die gingen, und verwendete ${falseAlarm} Anrufe auf Kunden, die blieben. Die lauten Kunden waren nicht die gehenden: Die Gehenden wurden still.`)
-            : tt(`The data caught ${caught} of ${leavers.length} leavers, with ${falseAlarm} false alarm (Kranbau Ost, a project customer in its quiet season). Data sees the quiet ones; it still needs a person to read the exceptions.`, `Die Daten fanden ${caught} von ${leavers.length} Abgängen, mit ${falseAlarm} Fehlalarm (Kranbau Ost, ein Projektkunde in seiner ruhigen Saison). Daten sehen die Stillen; sie brauchen trotzdem einen Menschen, der die Ausnahmen liest.`)}
+            ? tt(`Gut feeling caught ${caught} of ${leavers} customers who left, and spent ${falseAlarm} calls on customers who stayed. The loud customers were not the leaving ones: the ones who left went quiet.`, `Das Bauchgefühl fand ${caught} von ${leavers} Kunden, die gingen, und verwendete ${falseAlarm} Anrufe auf Kunden, die blieben. Die lauten Kunden waren nicht die gehenden: Die Gehenden wurden still.`)
+            : tt(`The data caught ${caught} of ${leavers} leavers, with ${falseAlarm} false alarm (Kranbau Ost, a project customer in its quiet season). Data sees the quiet ones; it still needs a person to read the exceptions.`, `Die Daten fanden ${caught} von ${leavers} Abgängen, mit ${falseAlarm} Fehlalarm (Kranbau Ost, ein Projektkunde in seiner ruhigen Saison). Daten sehen die Stillen; sie brauchen trotzdem einen Menschen, der die Ausnahmen liest.`)}
       </Insight>
       <p className="text-caption text-ash">{tt("Illustration on Weser Cloud's customers (Case assumption).", "Illustration mit Kunden von Weser Cloud (Fallannahme).")}</p>
     </div>
@@ -101,12 +151,38 @@ const W_LINES = bi([
 
 export function Ladder() {
   const uid = useId().replace(/:/g, "");
-  const [step, setStep] = useState<Step>("info");
+  const [step, setStepRaw] = useState<Step>("info");
   const [open, setOpen] = useState<string[]>([]);
+  const story = useStory([
+    {
+      title: tt("A fact on its own", "Ein Fakt allein"),
+      say: tt("Weser Cloud is an example company, not your case. “Customer W-3 logged in 11 times in May.” That is true, and it tells you nothing: 11 could be a lot or a little.", "Weser Cloud ist ein Beispielunternehmen, nicht Ihr Fall. „Kunde W-3 hat sich im Mai 11-mal angemeldet.“ Das stimmt, und es sagt Ihnen nichts: 11 kann viel oder wenig sein."),
+      look: tt("the lowest step, Data", "die unterste Stufe, Daten"),
+      apply: () => setStepRaw("data"),
+    },
+    {
+      title: tt("A fact that says “so what”", "Ein Fakt, der „Na und“ beantwortet"),
+      say: tt("Now compare: logins fell from 40 to 11, and customers like this left five times as often last year. So W-3 is at risk, and someone can act.", "Jetzt vergleichen: Die Logins sanken von 40 auf 11, und solche Kunden gingen letztes Jahr fünfmal so oft. Also ist W-3 gefährdet, und jemand kann handeln."),
+      look: tt("the step Insight, one step below the top", "die Stufe Insight, eine unter der obersten"),
+      apply: () => setStepRaw("insight"),
+    },
+    {
+      title: tt("The point", "Das Wichtigste"),
+      say: tt("Data is a fact, information compares facts, an insight says what it means. Only a decision makes anything change. Click the steps and try the three lines below.", "Daten sind ein Fakt, Information vergleicht Fakten, ein Insight sagt, was es bedeutet. Erst eine Entscheidung ändert etwas. Klicken Sie die Stufen an und probieren Sie die drei Zeilen darunter."),
+      look: tt("the top step, Decision", "die oberste Stufe, Entscheidung"),
+      apply: () => setStepRaw("decision"),
+    },
+  ]);
+  const setStep = (k: Step) => {
+    story.leave();
+    setStepRaw(k);
+  };
   const s = STEP_TEXT[step];
   const idx = STEPS.indexOf(step);
   return (
     <div className="space-y-3">
+      <ThePoint>{tt("A number is only data. Compare numbers and you have information. Say what it means and what to do and you have an insight. Only a decision changes anything.", "Eine Zahl sind nur Daten. Vergleichen Sie Zahlen, haben Sie Information. Sagen Sie, was es bedeutet und was zu tun ist, haben Sie einen Insight. Erst eine Entscheidung ändert etwas.")}</ThePoint>
+      <Story steps={story.plan} step={story.step} onStep={story.go} />
       <svg viewBox="0 0 560 190" className="mx-auto h-auto w-full max-w-[600px]" role="img" aria-labelledby={`${uid}-t ${uid}-d`}>
         <title id={`${uid}-t`}>{tt("Four steps from data to decision", "Vier Stufen von Daten zur Entscheidung")}</title>
         <desc id={`${uid}-d`}>{tt(`Step shown: ${s.name}.`, `Gezeigte Stufe: ${s.name}.`)}</desc>
@@ -116,6 +192,7 @@ export function Ladder() {
           const on = i <= idx;
           return (
             <g key={k} className="hit" role="button" tabIndex={0} aria-label={STEP_TEXT[k].name} onClick={() => setStep(k)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setStep(k)}>
+              {story.step !== null && k === step && <rect x={x - 5} y={y - 5} width="130" height="50" rx="9" fill="none" stroke={C.amber} strokeWidth="2.5" strokeDasharray="5 4" className="anim-pulse" />}
               <rect className="hit-shape" x={x} y={y} width="120" height="40" rx="6" fill={k === step ? C.gold : on ? C.data : C.paper} stroke={C.ink} strokeWidth="1.4" />
               <text x={x + 60} y={y + 25} textAnchor="middle" fontSize="13" fontWeight="700" fill={k === step ? C.ink : on ? C.paper : C.ash}>{STEP_TEXT[k].name}</text>
               {i < 3 && <path d={`M${x + 120},${y + 20} L${x + 132},${y - 16}`} stroke={C.ash} strokeWidth="1.6" markerEnd={`url(#${uid}-arr)`} />}
@@ -134,7 +211,10 @@ export function Ladder() {
         <span className="smallcaps mr-1.5">{tt("Weser Cloud", "Weser Cloud")}</span>
         {s.example}
       </p>
-      <Insight>{s.reading}</Insight>
+      <Insight>
+        {plain()}
+        {s.reading}
+      </Insight>
       <div className="space-y-1.5">
         <p className="smallcaps">{tt("A worked sort: three lines from Weser Cloud's reports", "Eine Beispielsortierung: drei Zeilen aus den Berichten von Weser Cloud")}</p>
         <ul className="space-y-1.5">
@@ -157,6 +237,7 @@ export function Ladder() {
           })}
         </ul>
         <Insight>
+          {plain()}
           {open.length === 0
             ? tt("Decide each line yourself first, then open it. The test that separates them: one fact, a summary, or a “so what”.", "Entscheiden Sie jede Zeile zuerst selbst, dann öffnen Sie sie. Der Test, der sie trennt: ein Fakt, eine Zusammenfassung, oder ein „Na und“.")
             : tt(`${open.length} of 3 opened. Numbers appear on every step; what moves a line up the ladder is comparison and then explanation, never the number itself.`, `${open.length} von 3 geöffnet. Zahlen kommen auf jeder Stufe vor; was eine Zeile die Leiter hinaufbringt, ist der Vergleich und dann die Erklärung, nie die Zahl selbst.`)}
@@ -178,11 +259,37 @@ const SRC = bi({
 });
 export function BigDataLimits() {
   const uid = useId().replace(/:/g, "");
-  const [k, setK] = useState<SrcKey>("logs");
+  const [k, setKRaw] = useState<SrcKey>("logs");
+  const story = useStory([
+    {
+      title: tt("Small and useful", "Klein und nützlich"),
+      say: tt(`Weser Cloud is an example company, not your case. Its platform logs feed a weekly decision and are ${SRC.logs.quality}% complete: a smart insight source.`, `Weser Cloud ist ein Beispielunternehmen, nicht Ihr Fall. Seine Plattform-Logs speisen eine wöchentliche Entscheidung und sind zu ${SRC.logs.quality} % vollständig: eine Quelle für Smart Insights.`),
+      look: tt("the bar “Linked to a decision”: yes", "den Balken „Mit einer Entscheidung verbunden“: ja"),
+      apply: () => setKRaw("logs"),
+    },
+    {
+      title: tt("Large and useless", "Groß und nutzlos"),
+      say: tt("Social media is just as large. But no decision Weser makes would change with it, so more of it is only noise.", "Soziale Medien sind genauso groß. Aber keine Entscheidung von Weser würde sich damit ändern, also ist mehr davon nur Rauschen."),
+      look: tt("the dashed empty bar “Linked to a decision”: no", "den gestrichelten leeren Balken „Mit einer Entscheidung verbunden“: nein"),
+      apply: () => setKRaw("social"),
+    },
+    {
+      title: tt("The point", "Das Wichtigste"),
+      say: tt("More data is not more insight. Ask which decision it changes, then how complete it is. Try the other sources.", "Mehr Daten sind nicht mehr Erkenntnis. Fragen Sie, welche Entscheidung sie ändert, dann wie vollständig sie ist. Probieren Sie die anderen Quellen."),
+      look: tt("the amber line at 80%", "die bernsteinfarbene Linie bei 80 %"),
+      apply: () => setKRaw("survey"),
+    },
+  ]);
+  const setK = (x: SrcKey) => {
+    story.leave();
+    setKRaw(x);
+  };
   const s = SRC[k];
   const verdict = !s.decision ? "noise" : s.quality >= 80 ? "smart" : "fix";
   return (
     <div className="space-y-3">
+      <ThePoint>{tt("More data is not more insight. A source helps when a decision uses it and it is complete enough to trust. A huge source that changes no decision is only noise.", "Mehr Daten sind nicht mehr Erkenntnis. Eine Quelle hilft, wenn eine Entscheidung sie nutzt und sie vollständig genug ist, um ihr zu trauen. Eine riesige Quelle, die keine Entscheidung ändert, ist nur Rauschen.")}</ThePoint>
+      <Story steps={story.plan} step={story.step} onStep={story.go} />
       <svg viewBox="0 0 560 172" className="mx-auto h-auto w-full max-w-[600px]" role="img" aria-labelledby={`${uid}-t ${uid}-d`}>
         <title id={`${uid}-t`}>{tt("A data source on three questions: how much, for which decision, how complete", "Eine Datenquelle nach drei Fragen: wie viel, für welche Entscheidung, wie vollständig")}</title>
         <desc id={`${uid}-d`}>{`${s.name}: ${s.decision ? tt("linked to a decision", "mit einer Entscheidung verbunden") : tt("no decision", "keine Entscheidung")}, ${s.quality}%`}</desc>
@@ -192,6 +299,7 @@ export function BigDataLimits() {
           { y: 120, label: tt("Complete", "Vollständig"), value: s.quality / 100, text: pct(s.quality) },
         ].map((r) => (
           <g key={r.y}>
+            {story.step !== null && ((story.step === 1 && r.y === 70) || (story.step === 0 && r.y === 70) || (story.step === 2 && r.y === 120)) && <rect x="204" y={r.y - 5} width="292" height="36" rx="6" fill="none" stroke={C.amber} strokeWidth="2" strokeDasharray="5 4" className="anim-pulse" />}
             <text x="0" y={r.y + 17} fontSize="12" fill={C.ink}>{r.label}</text>
             <rect x="210" y={r.y} width="280" height="26" fill={C.mist} stroke={C.line} />
             <rect x="210" y={r.y} width={Math.max(4, 280 * r.value)} height="26" fill={r.y === 70 && !s.decision ? C.paper : C.data} stroke={C.ink} strokeDasharray={r.y === 70 && !s.decision ? "4 3" : undefined} />
@@ -203,6 +311,7 @@ export function BigDataLimits() {
       </svg>
       <Toggles<SrcKey> label={tt("Data source", "Datenquelle")} value={k} onChange={setK} options={(Object.keys(SRC) as SrcKey[]).map((x) => ({ id: x, label: SRC[x].name }))} />
       <Insight>
+        {plain()}
         {verdict === "smart"
           ? tt(`${s.name}: large, complete and linked to a decision Weser makes every week. This is a smart insight source. Its limit: ${s.limit}`, `${s.name}: groß, vollständig und mit einer Entscheidung verbunden, die Weser jede Woche trifft. Das ist eine Quelle für Smart Insights. Ihre Grenze: ${s.limit}`)
           : verdict === "noise"
@@ -217,15 +326,42 @@ export function BigDataLimits() {
 
 export function ForecastExample() {
   const uid = useId().replace(/:/g, "");
-  const [now, setNow] = useState(WESER.fallingNow);
+  const [now, setNowRaw] = useState(WESER.fallingNow);
   const r = WESER_RESULT;
   const risk = atRisk(now, r.rate, WESER.revenue);
   const W = (p: number) => (p / 25) * 300;
+  const story = useStory([
+    {
+      title: tt("How much riskier", "Wie viel riskanter"),
+      say: tt(`Weser Cloud is an example company, not your case. Customers whose use fell left ${num(r.lift)} times as often as the others: ${pct(r.rate)} against ${pct(r.other)}.`, `Weser Cloud ist ein Beispielunternehmen, nicht Ihr Fall. Kunden mit gesunkener Nutzung gingen ${num(r.lift)}-mal so oft wie die übrigen: ${pct(r.rate)} gegenüber ${pct(r.other)}.`),
+      look: tt("the two bars and the lift line", "die zwei Balken und die Lift-Zeile"),
+      apply: () => setNowRaw(WESER.fallingNow),
+    },
+    {
+      title: tt("What is at stake", "Worum es geht"),
+      say: tt(`This quarter ${WESER.fallingNow} customers show the same drop. ${WESER.fallingNow} × ${pct(r.rate)} × ${euro(WESER.revenue)} is ${euro(atRisk(WESER.fallingNow, r.rate, WESER.revenue))} of yearly revenue at risk.`, `In diesem Quartal zeigen ${WESER.fallingNow} Kunden denselben Rückgang. ${WESER.fallingNow} × ${pct(r.rate)} × ${euro(WESER.revenue)} sind ${euro(atRisk(WESER.fallingNow, r.rate, WESER.revenue))} gefährdeter Jahresumsatz.`),
+      look: tt("the slider and the sum in “What this shows”", "den Regler und die Rechnung in „Was das zeigt“"),
+      apply: () => setNowRaw(WESER.fallingNow),
+    },
+    {
+      title: tt("The point", "Das Wichtigste"),
+      say: tt("A forecast assumes this year's customers behave like last year's, so say “about”. Move the slider: more customers with the signal, more revenue at risk.", "Eine Prognose nimmt an, dass sich die Kunden dieses Jahres wie die des letzten verhalten, also sagen Sie „etwa“. Bewegen Sie den Regler: mehr Kunden mit dem Signal, mehr gefährdeter Umsatz."),
+      look: tt("the slider", "den Regler"),
+      apply: () => setNowRaw(45),
+    },
+  ]);
+  const setNow = (v: number) => {
+    story.leave();
+    setNowRaw(v);
+  };
   return (
     <div className="space-y-3">
+      <ThePoint>{tt("Look back first: how often did customers with a warning sign leave, compared with everyone else? Then count how many customers show the sign today. That gives you a first forecast of what is at stake.", "Schauen Sie zuerst zurück: Wie oft gingen Kunden mit einem Warnzeichen, verglichen mit allen anderen? Zählen Sie dann, wie viele Kunden das Zeichen heute zeigen. So entsteht eine erste Prognose, worum es geht.")}</ThePoint>
+      <Story steps={story.plan} step={story.step} onStep={story.go} />
       <svg viewBox="0 0 560 150" className="mx-auto h-auto w-full max-w-[600px]" role="img" aria-labelledby={`${uid}-t ${uid}-d`}>
         <title id={`${uid}-t`}>{tt("Weser Cloud: churn rate of customers with falling usage against the others", "Weser Cloud: Churn Rate der Kunden mit sinkender Nutzung gegen die übrigen")}</title>
         <desc id={`${uid}-d`}>{tt(`Falling usage ${r.rate}%, others ${r.other}%, lift ${r.lift}.`, `Sinkende Nutzung ${r.rate} %, übrige ${r.other} %, Lift ${r.lift}.`)}</desc>
+        {story.step === 0 && <rect x="0" y="10" width="552" height="132" rx="8" fill="none" stroke={C.amber} strokeWidth="2.5" strokeDasharray="5 4" className="anim-pulse" />}
         <text x="0" y="36" fontSize="12" fill={C.ink}>{tt("Usage fell 30%+", "Nutzung −30 % und mehr")}</text>
         <rect x="170" y="20" width={W(r.rate)} height="26" fill={C.data} stroke={C.ink} />
         <text x={176 + W(r.rate)} y="38" fontSize="12.5" fontWeight="700" fill={C.ink}>{`${pct(r.rate)} (${WESER.falling.left} ${tt("of", "von")} ${WESER.falling.customers})`}</text>
@@ -234,13 +370,14 @@ export function ForecastExample() {
         <text x={176 + W(r.other)} y="88" fontSize="12.5" fontWeight="700" fill={C.ink}>{`${pct(r.other)} (${WESER.stable.left} ${tt("of", "von")} ${WESER.stable.customers})`}</text>
         <text x="170" y="128" fontSize="13" fontWeight="700" fill={C.amber}>{tt(`Lift = ${r.rate} ÷ ${r.other} = ${num(r.lift)} times as often`, `Lift = ${r.rate} ÷ ${r.other} = ${num(r.lift)}-mal so oft`)}</text>
       </svg>
-      <div className="space-y-1.5">
+      <div className={clsx("space-y-1.5 rounded-md p-1", story.step !== null && story.step >= 1 && SPOT)}>
         <label htmlFor={`${uid}-now`} className="smallcaps block">
           {tt(`Weser customers whose usage has fallen this quarter: ${now}`, `Kunden von Weser, deren Nutzung in diesem Quartal gesunken ist: ${now}`)}
         </label>
         <input id={`${uid}-now`} type="range" min={10} max={60} step={5} value={now} onChange={(e) => setNow(Number(e.target.value))} className="w-full max-w-md accent-[#8A5A0B]" />
       </div>
       <Insight>
+        {plain()}
         {tt(
           `${now} customers × ${pct(r.rate)} × ${euro(WESER.revenue)} = ${euro(risk)} of yearly revenue at risk. The rate comes from last year's history, the count from this quarter: the forecast only works if the new group behaves like the old one. ${now === WESER.fallingNow ? "At 30 customers the example gives €72,000." : `Moving the slider changes the count, not the rate: ${now > WESER.fallingNow ? "more" : "fewer"} customers showing the signal, ${now > WESER.fallingNow ? "more" : "less"} revenue at risk.`}`,
           `${now} Kunden × ${pct(r.rate)} × ${euro(WESER.revenue)} = ${euro(risk)} Jahresumsatz gefährdet. Die Rate stammt aus der Historie des letzten Jahres, die Zahl aus diesem Quartal: Die Prognose funktioniert nur, wenn sich die neue Gruppe wie die alte verhält. ${now === WESER.fallingNow ? "Bei 30 Kunden ergibt das Beispiel 72.000 €." : `Der Regler ändert die Zahl, nicht die Rate: ${now > WESER.fallingNow ? "mehr" : "weniger"} Kunden mit dem Signal, ${now > WESER.fallingNow ? "mehr" : "weniger"} gefährdeter Umsatz.`}`,
@@ -266,17 +403,44 @@ const W_REC = bi({
 });
 export function PatternCurves() {
   const uid = useId().replace(/:/g, "");
-  const [sel, setSel] = useState<PatternId>("fading");
+  const [sel, setSelRaw] = useState<PatternId>("fading");
+  const story = useStory([
+    {
+      title: tt("A fade", "Ein Nachlassen"),
+      say: tt("Weser Cloud is an example company, not your case. W-12 was at 300 logins a month and fell to 100 after a merger: fading.", "Weser Cloud ist ein Beispielunternehmen, nicht Ihr Fall. W-12 war bei 300 Logins im Monat und fiel nach einer Fusion auf 100: nachlassend."),
+      look: tt("the amber line that slopes down", "die bernsteinfarbene Linie, die abfällt"),
+      apply: () => setSelRaw("fading"),
+    },
+    {
+      title: tt("A season", "Eine Saison"),
+      say: tt("Customer W-14 also drops low, but it does so every year and comes back at each tax deadline. The same dip as a fade, with the opposite meaning: cyclical.", "Kunde W-14 fällt ebenfalls tief, tut das aber jedes Jahr und kommt zu jeder Steuerfrist zurück. Dieselbe Delle wie beim Nachlassen, mit der gegenteiligen Bedeutung: zyklisch."),
+      look: tt("the waves: the dips come back", "die Wellen: Die Täler kommen wieder"),
+      apply: () => setSelRaw("cyclical"),
+    },
+    {
+      title: tt("The point", "Das Wichtigste"),
+      say: tt("Read the shape over a year, not one month. Ask: was use ever high, and does a drop come back? Tap the other two customers.", "Lesen Sie die Form über ein Jahr, nicht einen Monat. Fragen Sie: War die Nutzung je hoch, und kommt ein Rückgang wieder? Tippen Sie die anderen zwei Kunden an."),
+      look: tt("the flat lines: high and steady, or low from the start", "die flachen Linien: hoch und gleichmäßig, oder niedrig von Anfang an"),
+      apply: () => setSelRaw("dormant"),
+    },
+  ]);
+  const setSel = (p: PatternId) => {
+    story.leave();
+    setSelRaw(p);
+  };
   const X = (i: number) => 40 + i * 44;
   const Y = (v: number) => 170 - v * 1.6;
   return (
     <div className="space-y-3">
+      <ThePoint>{tt("Customers leave traces in their usage, and over a year the traces form a shape: high and steady, falling, low from the start, or waves. Each shape means something different, and two of them look alike at first sight.", "Kunden hinterlassen Spuren in ihrer Nutzung, und über ein Jahr bilden die Spuren eine Form: hoch und gleichmäßig, fallend, von Anfang an niedrig, oder Wellen. Jede Form bedeutet etwas anderes, und zwei sehen auf den ersten Blick ähnlich aus.")}</ThePoint>
+      <Story steps={story.plan} step={story.step} onStep={story.go} />
       <svg viewBox="0 0 560 200" className="mx-auto h-auto w-full max-w-[600px]" role="img" aria-labelledby={`${uid}-t ${uid}-d`}>
         <title id={`${uid}-t`}>{tt("Twelve months of usage for four Weser Cloud customers", "Zwölf Monate Nutzung für vier Kunden von Weser Cloud")}</title>
         <desc id={`${uid}-d`}>{tt(`Highlighted: ${PATTERNS[sel].label}.`, `Hervorgehoben: ${PATTERNS[sel].label}.`)}</desc>
         <line x1="36" y1="172" x2="540" y2="172" stroke={C.ash} />
         <text x="36" y="192" fontSize="11" fill={C.ash}>{tt("month 1", "Monat 1")}</text>
         <text x="540" y="192" textAnchor="end" fontSize="11" fill={C.ash}>{tt("month 12", "Monat 12")}</text>
+        {story.step !== null && <rect x="30" y={Y(Math.max(...CURVES[sel])) - 8} width="516" height={Y(Math.min(...CURVES[sel])) - Y(Math.max(...CURVES[sel])) + 16} rx="8" fill="none" stroke={C.amber} strokeWidth="2" strokeDasharray="5 4" className="anim-pulse" />}
         {PATTERN_IDS.map((p) => (
           <polyline
             key={p}
@@ -298,6 +462,7 @@ export function PatternCurves() {
       </svg>
       <Toggles<PatternId> label={tt("Pattern", "Muster")} value={sel} onChange={setSel} options={PATTERN_IDS.map((p) => ({ id: p, label: `${W_REC[p].who} · ${PATTERNS[p].label}` }))} />
       <Insight>
+        {plain()}
         {tt(
           `${W_REC[sel].who}: ${W_REC[sel].text} The shape is ${PATTERNS[sel].shape}. Test: ${PATTERNS[sel].test}`,
           `${W_REC[sel].who}: ${W_REC[sel].text} Die Form ist ${PATTERNS[sel].shape}. Test: ${PATTERNS[sel].test}`,
@@ -313,9 +478,35 @@ export function PatternCurves() {
 
 export function LinkOrCause() {
   const uid = useId().replace(/:/g, "");
-  const [third, setThird] = useState(false);
+  const [third, setThirdRaw] = useState(false);
+  const story = useStory([
+    {
+      title: tt("The tempting reading", "Die verlockende Lesart"),
+      say: tt("Weser Cloud is an example company, not your case. Customers with many tickets left more often. Read plainly, tickets drive customers away, so answer tickets faster.", "Weser Cloud ist ein Beispielunternehmen, nicht Ihr Fall. Kunden mit vielen Tickets gingen häufiger. Wörtlich gelesen vertreiben Tickets die Kunden, also beantworten Sie Tickets schneller."),
+      look: tt("the arrow “seems to cause”", "den Pfeil „scheint zu verursachen“"),
+      apply: () => setThirdRaw(false),
+    },
+    {
+      title: tt("What was behind both", "Was hinter beidem steckte"),
+      say: tt("A failed migration on the customer's side caused the tickets and the leaving. Faster answers would not have saved them; help with the migration might have.", "Eine gescheiterte Migration auf Kundenseite verursachte die Tickets und das Gehen. Schnellere Antworten hätten sie nicht gehalten; Hilfe bei der Migration vielleicht schon."),
+      look: tt("the amber box “Failed migration”", "den bernsteinfarbenen Kasten „Gescheiterte Migration“"),
+      apply: () => setThirdRaw(true),
+    },
+    {
+      title: tt("The point", "Das Wichtigste"),
+      say: tt("A pattern tells you where to look, not what the cause is. Before you act, ask what could sit behind both. Press the button to show or hide it.", "Ein Muster sagt, wo man hinsehen soll, nicht, was die Ursache ist. Fragen Sie vor dem Handeln, was hinter beidem stecken könnte. Drücken Sie die Schaltfläche, um es zu zeigen oder zu verbergen."),
+      look: tt("the dashed arrow: only a link", "den gestrichelten Pfeil: nur ein Zusammenhang"),
+      apply: () => setThirdRaw(true),
+    },
+  ]);
+  const toggleThird = () => {
+    story.leave();
+    setThirdRaw((x) => !x);
+  };
   return (
     <div className="space-y-3">
+      <ThePoint>{tt("When two things happen together, one may not cause the other. A third thing can drive both. A pattern shows where to look; it does not prove the cause, and the right fix depends on the cause.", "Wenn zwei Dinge zusammen auftreten, verursacht das eine nicht unbedingt das andere. Ein Drittes kann beides antreiben. Ein Muster zeigt, wo man hinsehen soll; es beweist nicht die Ursache, und die richtige Lösung hängt von der Ursache ab.")}</ThePoint>
+      <Story steps={story.plan} step={story.step} onStep={story.go} />
       <svg viewBox="0 0 560 200" className="mx-auto h-auto w-full max-w-[600px]" role="img" aria-labelledby={`${uid}-t ${uid}-d`}>
         <title id={`${uid}-t`}>{tt("Many tickets and leaving: a link, and what may lie behind it", "Viele Tickets und Abwanderung: ein Zusammenhang, und was dahinter liegen kann")}</title>
         <desc id={`${uid}-d`}>{third ? tt("A third factor, a failed migration, causes both.", "Ein dritter Faktor, eine gescheiterte Migration, verursacht beides.") : tt("Tickets appear to lead to leaving.", "Tickets scheinen zur Abwanderung zu führen.")}</desc>
@@ -328,10 +519,12 @@ export function LinkOrCause() {
         <text x="110" y="160" textAnchor="middle" fontSize="13" fontWeight="700" fill={C.ink}>{tt("Many tickets", "Viele Tickets")}</text>
         <rect x="370" y="130" width="160" height="50" rx="8" fill={C.paper} stroke={C.ink} />
         <text x="450" y="160" textAnchor="middle" fontSize="13" fontWeight="700" fill={C.ink}>{tt("Customer leaves", "Kunde geht")}</text>
+        {story.step !== null && story.step === 0 && <rect x="194" y="120" width="170" height="46" rx="8" fill="none" stroke={C.amber} strokeWidth="2" strokeDasharray="5 4" className="anim-pulse" />}
         <line x1="190" y1="155" x2="366" y2="155" stroke={third ? C.grey : C.ink} strokeWidth="2.2" strokeDasharray={third ? "6 5" : undefined} markerEnd={third ? undefined : `url(#${uid}-a)`} />
         <text x="280" y="146" textAnchor="middle" fontSize="11.5" fill={third ? C.ash : C.ink}>{third ? tt("only a link", "nur ein Zusammenhang") : tt("seems to cause", "scheint zu verursachen")}</text>
         {third && (
           <g>
+            {story.step !== null && story.step >= 1 && <rect x="194" y="14" width="172" height="62" rx="10" fill="none" stroke={C.amber} strokeWidth="2.5" strokeDasharray="5 4" className="anim-pulse" />}
             <rect x="200" y="20" width="160" height="50" rx="8" fill={C.soft} stroke={C.amber} strokeWidth="2" />
             <text x="280" y="42" textAnchor="middle" fontSize="12.5" fontWeight="700" fill={C.ink}>{tt("Failed migration", "Gescheiterte Migration")}</text>
             <text x="280" y="59" textAnchor="middle" fontSize="11" fill={C.ash}>{tt("on the customer's side", "auf Kundenseite")}</text>
@@ -340,8 +533,9 @@ export function LinkOrCause() {
           </g>
         )}
       </svg>
-      <Toggles<string> label={tt("Third factor", "Dritter Faktor")} value={third ? "on" : null} onChange={() => setThird((x) => !x)} options={[{ id: "on", label: third ? tt("Hide the third factor", "Dritten Faktor verbergen") : tt("Show a third factor", "Einen dritten Faktor zeigen") }]} />
+      <Toggles<string> label={tt("Third factor", "Dritter Faktor")} value={third ? "on" : null} onChange={toggleThird} options={[{ id: "on", label: third ? tt("Hide the third factor", "Dritten Faktor verbergen") : tt("Show a third factor", "Einen dritten Faktor zeigen") }]} />
       <Insight>
+        {plain()}
         {third
           ? tt("At Weser Cloud, customers with many tickets did leave more often. But the tickets and the leaving both came from a failed migration on the customer's side. Answering tickets faster would not have saved them; helping with the migration might have. A pattern tells you where to look, not what the cause is.", "Bei Weser Cloud gingen Kunden mit vielen Tickets tatsächlich häufiger. Aber Tickets und Abwanderung kamen beide aus einer gescheiterten Migration auf Kundenseite. Schnellere Ticketantworten hätten sie nicht gehalten; Hilfe bei der Migration vielleicht schon. Ein Muster sagt, wo man hinschauen soll, nicht, was die Ursache ist.")
           : tt("Read at face value, many tickets make customers leave, so the fix would be faster ticket answers. Press “Show a third factor” to test that reading.", "Wörtlich gelesen lassen viele Tickets Kunden gehen, also wäre die Lösung schnellere Ticketantworten. Drücken Sie „Einen dritten Faktor zeigen“, um diese Lesart zu prüfen.")}
@@ -355,20 +549,52 @@ export function LinkOrCause() {
 type WM = { id: string; name: string; cost: number; evidence: Evidence; fea: 1 | 2 | 3; eff: 1 | 2 | 3 };
 const BUD_W = 60000;
 const EVIDENCES: Evidence[] = ["pattern", "some", "hunch"];
+const W_START = (): WM[] => [
+  { id: "p", name: tt("Call every customer whose usage fell 30%", "Jeden Kunden anrufen, dessen Nutzung um 30 % fiel"), cost: 25000, evidence: "pattern", fea: 2, eff: 3 },
+  { id: "q", name: tt("Tax-season calendar for accounting firms", "Steuersaison-Kalender für Kanzleien"), cost: 8000, evidence: "some", fea: 3, eff: 1 },
+  { id: "r", name: tt("Gift boxes for the 20 largest customers", "Geschenkboxen für die 20 größten Kunden"), cost: 12000, evidence: "hunch", fea: 3, eff: 1 },
+];
 export function ScoreExample() {
   const uid = useId().replace(/:/g, "");
-  const [rows, setRows] = useState<WM[]>(() => [
-    { id: "p", name: tt("Call every customer whose usage fell 30%", "Jeden Kunden anrufen, dessen Nutzung um 30 % fiel"), cost: 25000, evidence: "pattern", fea: 2, eff: 3 },
-    { id: "q", name: tt("Tax-season calendar for accounting firms", "Steuersaison-Kalender für Kanzleien"), cost: 8000, evidence: "some", fea: 3, eff: 1 },
-    { id: "r", name: tt("Gift boxes for the 20 largest customers", "Geschenkboxen für die 20 größten Kunden"), cost: 12000, evidence: "hunch", fea: 3, eff: 1 },
+  const [rows, setRows] = useState<WM[]>(W_START);
+  const start = W_START();
+  const sc = (r: WM) => explainBucket(r.evidence) * r.fea * r.eff;
+  const story = useStory([
+    {
+      title: tt("Strong evidence", "Starke Evidenz"),
+      say: tt(`Weser Cloud is an example company with three ideas. Calling customers whose use fell rests on a pattern across many customers: ${explainBucket(start[0].evidence)} × ${start[0].fea} × ${start[0].eff} = ${sc(start[0])}.`, `Weser Cloud ist ein Beispielunternehmen mit drei Ideen. Kunden mit gesunkener Nutzung anzurufen, ruht auf einem Muster über viele Kunden: ${explainBucket(start[0].evidence)} × ${start[0].fea} × ${start[0].eff} = ${sc(start[0])}.`),
+      look: tt("the first row and its score", "die erste Zeile und ihren Wert"),
+      apply: () => setRows(W_START()),
+    },
+    {
+      title: tt("Easy, but nothing behind it", "Leicht, aber nichts dahinter"),
+      say: tt(`Gift boxes are easy to do (feasibility 3), yet nothing in the data says gifts keep customers: ${explainBucket(start[2].evidence)} × ${start[2].fea} × ${start[2].eff} = ${sc(start[2])}.`, `Geschenkboxen sind leicht umzusetzen (Machbarkeit 3), doch nichts in den Daten sagt, dass Geschenke Kunden halten: ${explainBucket(start[2].evidence)} × ${start[2].fea} × ${start[2].eff} = ${sc(start[2])}.`),
+      look: tt("the third row: the grey “rests on” line", "die dritte Zeile: die graue „ruht auf“-Zeile"),
+      apply: () => setRows(W_START()),
+    },
+    {
+      title: tt("The point", "Das Wichtigste"),
+      say: tt("Score the evidence, the ease and the effect, and multiply. Cheap and easy is not the same as worth it. Click a grey “rests on” line and watch the score move.", "Bewerten Sie Evidenz, Leichtigkeit und Wirkung und multiplizieren Sie. Günstig und leicht ist nicht dasselbe wie lohnend. Klicken Sie eine graue „ruht auf“-Zeile und sehen Sie, wie sich der Wert bewegt."),
+      look: tt("the grey “rests on” lines", "die grauen „ruht auf“-Zeilen"),
+      apply: () => setRows(W_START()),
+    },
   ]);
-  const cycle = (id: string, f: "fea" | "eff") => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, [f]: ((r[f] % 3) + 1) as 1 | 2 | 3 } : r)));
-  const setEv = (id: string) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, evidence: EVIDENCES[(EVIDENCES.indexOf(r.evidence) + 1) % 3] } : r)));
+  const cycle = (id: string, f: "fea" | "eff") => {
+    story.leave();
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, [f]: ((r[f] % 3) + 1) as 1 | 2 | 3 } : r)));
+  };
+  const setEv = (id: string) => {
+    story.leave();
+    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, evidence: EVIDENCES[(EVIDENCES.indexOf(r.evidence) + 1) % 3] } : r)));
+  };
   const scored = rows.map((r) => ({ ...r, exp: explainBucket(r.evidence), score: explainBucket(r.evidence) * r.fea * r.eff }));
   const total = scored.reduce((s, r) => s + r.cost, 0);
   const best = [...scored].sort((a, b) => b.score - a.score)[0];
+  const spotRow = story.step === 0 ? "p" : story.step === 1 ? "r" : null;
   return (
     <div className="space-y-3">
+      <ThePoint>{tt("Not every good idea is worth the money. Score how strong the evidence is, how easy it is and how much it changes, and multiply. The evidence is read from what the idea rests on, never guessed.", "Nicht jede gute Idee ist das Geld wert. Bewerten Sie, wie stark die Evidenz ist, wie leicht es geht und wie viel es ändert, und multiplizieren Sie. Die Evidenz wird daraus gelesen, worauf die Idee ruht, nie geschätzt.")}</ThePoint>
+      <Story steps={story.plan} step={story.step} onStep={story.go} />
       <div className="relative overflow-x-auto rounded-lg border border-line">
         <table className="w-full min-w-[38rem] border-collapse text-caption">
           <caption className="sr-only">{tt("Three measures of Weser Cloud scored on explanatory power, feasibility and effect", "Drei Maßnahmen von Weser Cloud, bewertet nach Erklärungskraft, Machbarkeit und Wirkung")}</caption>
@@ -384,7 +610,7 @@ export function ScoreExample() {
           </thead>
           <tbody>
             {scored.map((r) => (
-              <tr key={r.id} className="border-t border-line align-top">
+              <tr key={r.id} className={clsx("border-t border-line align-top", spotRow === r.id && SPOT)}>
                 <td className="px-3 py-2">
                   <span className="font-semibold">{r.name}</span>
                   <br />
@@ -414,6 +640,7 @@ export function ScoreExample() {
         {tt(`All three together: ${euro(total)} of ${euro(BUD_W)}.`, `Alle drei zusammen: ${euro(total)} von ${euro(BUD_W)}.`)}
       </p>
       <Insight>
+        {plain()}
         {tt(
           `Highest score now: “${best.name}” (${best.score}). Explanatory power is not judged: it follows from what the measure rests on. Click the grey “rests on” line to change the evidence and watch the score move. The gift boxes are easy (feasibility 3), yet score low, because nothing in the data says gifts keep customers.`,
           `Höchster Wert jetzt: „${best.name}“ (${best.score}). Die Erklärungskraft wird nicht geschätzt: Sie folgt daraus, worauf die Maßnahme ruht. Klicken Sie die graue „ruht auf“-Zeile, um die Evidenz zu ändern, und sehen Sie, wie sich der Wert bewegt. Die Geschenkboxen sind leicht (Machbarkeit 3), erzielen aber wenig, weil nichts in den Daten sagt, dass Geschenke Kunden halten.`,
@@ -422,4 +649,3 @@ export function ScoreExample() {
     </div>
   );
 }
-

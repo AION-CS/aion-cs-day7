@@ -7,6 +7,12 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "day7-out",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-out.cjs", "4107"],
+      "port": 4107
     }
   ]
 }

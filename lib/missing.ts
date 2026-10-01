@@ -2,11 +2,11 @@ import { LINES } from "@/data/ladder";
 import { INSIGHT_MIN, PICK, hasSoWhat } from "@/data/forecast";
 import { PATTERNS, PATTERN_IDS, RECORDS } from "@/data/patterns";
 import { CHOOSE, MEASURE_BY_ID } from "@/data/measures";
-import { ARCH_BY_ID, ARCH_IDS, COMP_BY_ID, COMP_CHOOSE, CRIT_IDS, PRINCIPLES, R2_BUDGET, SIT_BY_ID, SIT_IDS, SOURCES } from "@/data/route2";
-import { archOver, citesForecastFigure, funded, hasNumber } from "@/lib/checks";
-import { MIN_LINE, MIN_SENTENCE } from "@/lib/progress";
+import { ARCH_BY_ID, ARCH_IDS, COMP_BY_ID, COMP_CHOOSE, CRIT_IDS, PRINCIPLES, SIT_BY_ID, SIT_IDS, SOURCES } from "@/data/route2";
+import { citesForecastFigure, funded, hasNumber } from "@/lib/checks";
+import { MIN_LINE, MIN_SENTENCE, OPTIONAL_BLOCKS } from "@/lib/progress";
 import { parseAmount } from "@/lib/parseAmount";
-import { euro, tt } from "@/lib/lang";
+import { tt } from "@/lib/lang";
 import type { Persisted } from "@/store/useStore";
 
 /** DOM ids the missing list points at. One place, so the list and the UI cannot drift. */
@@ -47,6 +47,13 @@ export const IDS = {
 } as const;
 
 export type MissingEntry = { id: string; label: string };
+
+/**
+ * Optional blocks (CLAUDE.md #35) are never required: their entries are dropped here, in one place, so the Export notice, the
+ * per-block notice (#34) and the dossier ring agree. Every label starts "Block X.Y:", in both languages.
+ */
+const OPTIONAL_PREFIXES = OPTIONAL_BLOCKS.map((b) => `Block ${b[1]}.${b[2]}:`);
+const coreOnly = (list: MissingEntry[]) => list.filter((m) => !OPTIONAL_PREFIXES.some((p) => m.label.startsWith(p)));
 const short = (s: string, n = 44) => (s.length > n ? `${s.slice(0, n)}…` : s);
 
 export function participantMissing(p: Persisted): MissingEntry[] {
@@ -101,7 +108,7 @@ export function l1Missing(p: Persisted): MissingEntry[] {
     if (l1.order.length !== CHOOSE || !l1.chosen.every((id) => l1.order.includes(id))) e(IDS.order, tt("Block 2.3: put your three measures in a priority order.", "Block 2.3: Bringen Sie Ihre drei Maßnahmen in eine Reihenfolge."));
     if (l1.why.trim().length < 60) e(IDS.why, tt("Block 2.3: say why your first priority goes first (at least 60 characters).", "Block 2.3: Begründen Sie, warum Ihre erste Priorität zuerst kommt (mindestens 60 Zeichen)."));
   }
-  return out;
+  return coreOnly(out);
 }
 
 export function r2Missing(p: Persisted): MissingEntry[] {
@@ -123,7 +130,6 @@ export function r2Missing(p: Persisted): MissingEntry[] {
   }
   const f = funded(r2);
   if (f.length === 0) e(IDS.archTotal, tt("Block 3.5: fund at least one item.", "Block 3.5: Finanzieren Sie mindestens einen Punkt."));
-  if (archOver(r2) > 0) e(IDS.archTotal, tt(`Block 3.5: the funded items are ${euro(archOver(r2))} over the ${euro(R2_BUDGET)} budget.`, `Block 3.5: Die finanzierten Punkte liegen ${euro(archOver(r2))} über dem Budget von ${euro(R2_BUDGET)}.`));
   for (const id of f) {
     const name = ARCH_BY_ID[id].name;
     if (r2.start[id] == null) e(IDS.arch(id), tt(`Block 3.5: “${name}” has no start month.`, `Block 3.5: „${name}“ hat keinen Startmonat.`));
@@ -145,5 +151,5 @@ export function r2Missing(p: Persisted): MissingEntry[] {
   if (!r2.tripMonth) e(IDS.trip, tt("Block 3.6: give the tripwire a month.", "Block 3.6: Geben Sie dem Tripwire einen Monat."));
   if (!r2.tripAction) e(IDS.trip, tt("Block 3.6: say what you do if the tripwire is missed.", "Block 3.6: Sagen Sie, was Sie tun, wenn der Tripwire verfehlt wird."));
   if (r2.challenge.trim().length < 60) e(IDS.challenge, tt("Block 3.6: answer the board's challenge (at least 60 characters).", "Block 3.6: Beantworten Sie die Frage des Vorstands (mindestens 60 Zeichen)."));
-  return out;
+  return coreOnly(out);
 }

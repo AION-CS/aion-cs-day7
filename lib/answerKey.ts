@@ -226,10 +226,10 @@ export function ownerKey(funded: ArchId[]): AnswerKeyBlock {
           : id === "ai"
             ? "A black box: nobody can say why it flags a customer. Funding it breaks the third rule; the check flags it."
             : id === "feed"
-              ? "No decision needs it (Block 3.2 leaves the same data out), and €50,000 would push the plan over."
+              ? "No decision needs it: nothing in it says how customers use SmartData, and €50,000 would push the plan over."
               : `The owner who can change it without asking anyone: ${OWNERS[OWNER_ACCEPT[id][0]].profile}`,
     })),
-    teachingNote: "The check tests three rules: the data foundation starts no later than the first other item, total within €180,000, nothing funded is a black box. Owners are not checked by the app; use this key. Leaving out the training instead of the quality drive defends if the learner argues that the CRM notes matter more now.",
+    teachingNote: "The check tests three rules: the data foundation starts no later than the first other item, total within €180,000, nothing funded is a black box. Owners are not checked by the app; use this key. Leaving out the training instead of the quality drive defends if the learner argues that the CRM notes matter more now. This is a decision part: a different, well-reasoned choice (even over budget, with the reason given) is acceptable and exports.",
   };
 }
 
@@ -238,7 +238,7 @@ export function decisionKey(): AnswerKeyBlock {
     title: "Block 3.6 · The decision",
     expected: DECISIONS.find((d) => d.id === MODEL_DECISION)!.label,
     options: DECISIONS.map((d) => ({ label: d.label, expected: d.id !== "wait", why: d.id === MODEL_DECISION ? d.why : d.id === "commit" ? `${d.why} ${d.rejected}` : d.rejected })),
-    teachingNote: "“Build it all now” and “Stage it” both defend with different reasoning; the check outlines only “Wait”, because the brief asks for a decision despite uncertain data.",
+    teachingNote: "“Build it all now” and “Stage it” both defend with different reasoning; the check outlines only “Wait”, because the brief asks for a decision despite uncertain data. A decision part: a different, well-reasoned choice is acceptable.",
   };
 }
 
@@ -246,8 +246,8 @@ export function tripKey(): AnswerKeyBlock {
   const k = KPIS.find((x) => x.id === MODEL_TRIPWIRE.kpi)!;
   return {
     title: "Block 3.6 · The tripwire",
-    expected: `${k.label} ≥ ${MODEL_TRIPWIRE.threshold}% by month ${MODEL_TRIPWIRE.month}, else adjust one rule`,
+    expected: `${k.label} above ${MODEL_TRIPWIRE.threshold}% by month ${MODEL_TRIPWIRE.month} (today 30% plus the step the funded items need to pay back), else adjust one item`,
     options: KPIS.map((x) => ({ label: `${x.label} (baseline ${x.baseline}${x.unit === "%" ? "%" : ` ${x.unit}`})`, expected: x.behaviour, why: x.behaviour ? "How customers behave: the result the architecture is meant to move." : "Measures the data team's own output, not how customers responded." })),
-    teachingNote: "Any customer metric with a threshold better than its baseline defends. Dashboards in use is the tempting one: it is a good trigger for the training item in 3.5, and the wrong tripwire for the decision.",
+    teachingNote: "A decision part: any customer metric with a threshold better than its baseline defends, and a different well-reasoned number is acceptable. Dashboards in use is the tempting one: it is a good trigger for the training item in 3.5, and the wrong tripwire for the decision.",
   };
 }

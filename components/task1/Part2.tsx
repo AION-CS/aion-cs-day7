@@ -10,7 +10,9 @@ import { MentorGuide } from "@/components/ui/MentorGuide";
 import { PlacementBoard } from "@/components/ui/PlacementBoard";
 import { RevealHint } from "@/components/ui/RevealHint";
 import { WritingHelp } from "@/components/ui/WritingHelp";
-import { MEANINGS, OUTCOME_LABEL, PATTERNS, PATTERN_IDS, PATTERN_PAIR_TESTS, PMEASURES, RECORDS, RISK_GLYPH, RISK_LABEL, RISK_RULE, UNCERTAINTIES } from "@/data/patterns";
+import { ExampleAnswer } from "@/components/ui/ExampleAnswer";
+import { BlockMissing } from "@/components/ui/BlockMissing";
+import { MEANINGS, OUTCOME_LABEL, PATTERNS, PATTERN_IDS, PATTERN_PAIR_TESTS, PMEASURES, RECORDS, REC_KEY, RISK_GLYPH, RISK_LABEL, RISK_RULE, UNCERTAINTIES } from "@/data/patterns";
 import type { MeaningId, PatternId, PMeasureId, RecId, Risk, UncId } from "@/data/patterns";
 import { BUDGET, CHOOSE, EVIDENCE_LABEL, EXPLAIN_RULE, MEASURES, MEASURE_BY_ID, MONTHS } from "@/data/measures";
 import type { MeasureId } from "@/data/measures";
@@ -39,6 +41,7 @@ export function Block21() {
       id="block-2-1"
       title={tt("Block 2.1 · Tag the twelve customer records with a pattern", "Block 2.1 · Die zwölf Kundendatensätze einem Muster zuordnen")}
       kind="OBJECTIVE"
+      core
       minutes={BLOCK_MINUTES["2.1"]}
       findIt={tt("Route 1 → Task 1 → the twelve records on the board below, from last year's customers, each with what happened next. Find the phrase that decides each one and answer on the board.", "Route 1 → Task 1 → die zwölf Datensätze auf der Tafel unten, von Kunden des letzten Jahres, jeder mit dem, was danach geschah. Finden Sie die Wendung, die jeden entscheidet, und antworten Sie auf der Tafel.")}
     >
@@ -54,6 +57,7 @@ export function Block21() {
         undoCount={l1.tagHistory.length}
         redoCount={l1.tagFuture.length}
         domId={IDS.rec}
+        keyPhrases={REC_KEY}
         clues={Object.fromEntries(RECORDS.map((o) => [o.id, o.clue]))}
         reasons={Object.fromEntries(RECORDS.map((o) => [o.id, o.why]))}
         result={l1.tagResult}
@@ -92,6 +96,7 @@ export function Block21() {
         }
       />
       <AnswerKey block={tagKey()} />
+      <BlockMissing block="2.1" route={1} />
     </AnswerBlock>
   );
 }
@@ -119,6 +124,7 @@ export function Block22() {
       id="block-2-2"
       title={tt("Block 2.2 · What each pattern says, how risky it is, and what to do", "Block 2.2 · Was jedes Muster sagt, wie riskant es ist, und was zu tun ist")}
       kind="OBJECTIVE + JUDGED"
+      core={false}
       minutes={BLOCK_MINUTES["2.2"]}
       findIt={tt("Route 1 → Task 1 → “Your tally” below (from your own tags in Block 2.1) and the rules in Materi A6. Answer in the four pattern rows and the fields under them.", "Route 1 → Task 1 → „Ihre Auszählung“ unten (aus Ihren eigenen Zuordnungen in Block 2.1) und die Regeln in Materi A6. Antworten Sie in den vier Musterzeilen und den Feldern darunter.")}
     >
@@ -228,8 +234,24 @@ export function Block22() {
         onChange={(v) => patch({ misread: v })}
         min={MIN_LINE}
         rows={3}
-      />
+      >
+        <WritingHelp
+          id="misread-kit"
+          refs={[
+            { label: tt("Your tally: fading and cyclical records", "Ihre Auszählung: nachlassende und zyklische Datensätze"), value: `${tally.count.fading} · ${tally.count.cyclical}`, target: "tally-panel" },
+            { label: tt("The pair tests (Materi A5)", "Die Paartests (Materi A5)"), value: PATTERN_PAIR_TESTS.map((x) => x.pair).join(" "), target: "mat-A5" },
+            { label: tt("A link is not a cause (Materi A6)", "Ein Zusammenhang ist keine Ursache (Materi A6)"), value: tt("a pattern shows where to look, not the cause", "ein Muster zeigt, wo man hinsehen soll, nicht die Ursache"), target: "mat-A6" },
+          ]}
+          steps={[
+            tt("Name one pattern and the one it could be mistaken for.", "Nennen Sie ein Muster und das, mit dem es verwechselt werden könnte."),
+            tt("Say what would go wrong (a pointless call, a lost customer, a discount given away).", "Sagen Sie, was schiefginge (ein sinnloser Anruf, ein verlorener Kunde, ein verschenkter Rabatt)."),
+            tt("Name the sign you would see in the data: the same months last year, or whether use was ever high.", "Nennen Sie das Anzeichen, das Sie in den Daten sehen würden: dieselben Monate im Vorjahr, oder ob die Nutzung je hoch war."),
+          ]}
+        />
+      </TextBox>
+      <ExampleAnswer id="misread-example" guide={misreadGuide()} />
       {mentor && <MentorGuide guide={misreadGuide()} />}
+      <BlockMissing block="2.2" route={1} />
     </AnswerBlock>
   );
 }
@@ -276,13 +298,22 @@ export function Block23() {
       id="block-2-3"
       title={tt("Block 2.3 · Choose three measures, score them, put them in order", "Block 2.3 · Drei Maßnahmen wählen, bewerten, in eine Reihenfolge bringen")}
       kind="OBJECTIVE + JUDGED"
+      core
       minutes={BLOCK_MINUTES["2.3"]}
       findIt={tt(`Route 1 → Task 1 → “The limits” in the case above (${euro(BUDGET)}, ${MONTHS} months) and the nine measures below. Answer by choosing three and filling their cards.`, `Route 1 → Task 1 → „Die Grenzen“ im Fall oben (${euro(BUDGET)}, ${MONTHS} Monate) und die neun Maßnahmen unten. Antworten Sie, indem Sie drei wählen und ihre Karten ausfüllen.`)}
     >
-      <MaterialRefs refs={["A7"]} />
+      <MaterialRefs refs={["A7", "A6"]} />
       <div id={IDS.measurePick} className="space-y-2">
         <p className="text-body text-ink">
           <Gloss>{tt("Choose exactly three of the nine measures. Each says what it does and what evidence it rests on; it does not say which pattern it serves. That is your job.", "Wählen Sie genau drei der neun Maßnahmen. Jede sagt, was sie tut und auf welcher Evidenz sie ruht; sie sagt nicht, welchem Muster sie dient. Das ist Ihre Aufgabe.")}</Gloss>
+        </p>
+        <p className="rounded-md border border-line bg-mist/40 px-3 py-2 text-caption text-ink">
+          <Gloss>
+            {tt(
+              "How to read a measure card. The title carries its cost and the weeks it needs, taken from the €160,000 and five months. Below it: what it does, one scene from SmartData's day, who does what, and what it rests on. “Rests on” is the evidence behind the measure: a pattern seen across many customers with a clear difference, some evidence (few customers or a small difference), or only a hunch, a vendor's promise or a single case. That evidence decides the explanatory-power score; the other two scores are your judgement.",
+              "So lesen Sie eine Maßnahmenkarte. Der Titel nennt ihre Kosten und die Wochen, die sie braucht, aus den 160.000 € und fünf Monaten. Darunter: was sie tut, eine Szene aus dem Alltag von SmartData, wer was tut und worauf sie beruht. „Ruht auf“ ist die Evidenz hinter der Maßnahme: ein Muster über viele Kunden mit klarem Unterschied, etwas Evidenz (wenige Kunden oder ein kleiner Unterschied), oder nur ein Bauchgefühl, ein Anbieterversprechen oder ein Einzelfall. Diese Evidenz bestimmt den Wert für die Erklärungskraft; die beiden anderen Werte sind Ihr Urteil.",
+            )}
+          </Gloss>
         </p>
         <OptionList<MeasureId>
           multi
@@ -291,7 +322,7 @@ export function Block23() {
           onChange={toggle}
           disabledIds={chosen.length >= CHOOSE ? MEASURES.map((m) => m.id) : []}
           onDisabledClick={() => scrollToAndFlash(IDS.measurePick, "warn")}
-          options={MEASURES.map((m) => ({ id: m.id, label: tt(`${m.name} · ${euro(m.cost)} · ${m.weeks} weeks`, `${m.name} · ${euro(m.cost)} · ${m.weeks} Wochen`), sub: `${m.what} ${m.basis}` }))}
+          options={MEASURES.map((m) => ({ id: m.id, label: tt(`${m.name} · ${euro(m.cost)} · ${m.weeks} weeks`, `${m.name} · ${euro(m.cost)} · ${m.weeks} Wochen`), sub: `${tt("What it does: ", "Was sie tut: ")}${m.what}\n${tt("A scene: ", "Eine Szene: ")}${m.scene}\n${tt("Who does what: ", "Wer was tut: ")}${m.who}\n${m.basis}` }))}
         />
         <p role="status" className="text-caption text-ash">
           {tt(`${chosen.length} of ${CHOOSE} chosen.`, `${chosen.length} von ${CHOOSE} gewählt.`)}
@@ -310,7 +341,7 @@ export function Block23() {
           <BudgetBar items={chosen.map((id) => ({ id, short: MEASURE_BY_ID[id].name.split(" ")[0], cost: MEASURE_BY_ID[id].cost }))} budget={BUDGET} title={tt(`Chosen measures against the ${euro(BUDGET)} budget`, `Gewählte Maßnahmen gegen das Budget von ${euro(BUDGET)}`)} />
           <p className="text-caption text-ash">
             {tt(`${chosen.length} measure${chosen.length === 1 ? "" : "s"} cost ${euro(cost)} of ${euro(BUDGET)}.`, `${chosen.length} ${chosen.length === 1 ? "Maßnahme kostet" : "Maßnahmen kosten"} ${euro(cost)} von ${euro(BUDGET)}.`)}
-            {cost > BUDGET ? tt(` That is ${euro(cost - BUDGET)} over: leave out the lowest score.`, ` Das sind ${euro(cost - BUDGET)} zu viel: Lassen Sie den niedrigsten Wert weg.`) : tt(` ${euro(BUDGET - cost)} is left.`, ` ${euro(BUDGET - cost)} bleiben übrig.`)}
+            {cost > BUDGET ? tt(` That is ${euro(cost - BUDGET)} over. A hint, not a lock: the rule of Materi A7 is to leave out the lowest score; if you keep it, say why below.`, ` Das sind ${euro(cost - BUDGET)} zu viel. Ein Hinweis, keine Sperre: Die Regel aus Materi A7 ist, den niedrigsten Wert wegzulassen; wenn Sie ihn behalten, sagen Sie unten, warum.`) : tt(` ${euro(BUDGET - cost)} is left.`, ` ${euro(BUDGET - cost)} bleiben übrig.`)}
           </p>
         </div>
       )}
@@ -441,12 +472,20 @@ export function Block23() {
                 tt("Say what the three cost against the €160,000.", "Sagen Sie, was die drei gegen die 160.000 € kosten."),
                 tt("Say what you left out and why.", "Sagen Sie, was Sie weggelassen haben und warum."),
               ]}
-              refs={[{ label: tt("Budget", "Budget"), value: euro(BUDGET), target: IDS.measurePick }]}
+              refs={[
+                { label: tt("Budget", "Budget"), value: euro(BUDGET), target: IDS.measurePick },
+                { label: tt("Your three measures cost", "Ihre drei Maßnahmen kosten"), value: euro(cost), target: IDS.measurePick },
+                ...shown.map((id, i) => ({ label: tt(`Priority ${i + 1}: ${MEASURE_BY_ID[id].name}, your score`, `Priorität ${i + 1}: ${MEASURE_BY_ID[id].name}, Ihr Wert`), value: String(measureScore(l1, id) || "—"), target: IDS.measure(id) })),
+                { label: tt("Your F3, revenue at risk (Block 1.2)", "Ihr F3, gefährdeter Umsatz (Block 1.2)"), value: l1.fig.F3 || tt("not filled yet", "noch leer"), target: IDS.figure("F3") },
+                { label: tt("Measures you did not choose", "Maßnahmen, die Sie nicht gewählt haben"), value: String(MEASURES.length - chosen.length), target: IDS.measurePick },
+              ]}
             />
           </TextBox>
+          <ExampleAnswer id="why-example" guide={whyGuide()} />
           {mentor && <MentorGuide guide={whyGuide()} />}
         </div>
       )}
+      <BlockMissing block="2.3" route={1} />
     </AnswerBlock>
   );
 }

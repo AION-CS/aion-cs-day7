@@ -109,3 +109,16 @@ export const LEVEL_TESTS = bi([
   { name: t("Data or information?", "Daten oder Information?"), test: t("Numbers are not the test. One order with a price is data; many orders turned into an average is information.", "Zahlen sind nicht der Test. Eine Bestellung mit Preis sind Daten; viele Bestellungen, zu einem Durchschnitt gemacht, sind Information.") },
   { name: t("Information or insight?", "Information oder Insight?"), test: t("Ask “so what?”. If the line already answers it, it is an insight; if you still have to answer it, it is information.", "Fragen Sie „Na und?“. Beantwortet die Zeile das schon, ist es ein Insight; müssen Sie es noch beantworten, ist es Information.") },
 ]);
+
+/** The decisive phrase inside each line's own text, for “Highlight the key words” (CLAUDE.md #4: every line at once, never which step). */
+export const LINE_KEY: Record<string, string> = bi({
+  l1: t("logged in on 3 March at 09:14", "am 3. März um 09:14 Uhr angemeldet"),
+  l2: t("Order 2291", "Bestellung 2291"),
+  l3: t("VPN very slow since the update.", "VPN seit dem Update sehr langsam."),
+  l4: t("average time between two orders rose from 64 to 97 days", "durchschnittliche Zeit zwischen zwei Bestellungen stieg dieses Jahr von 64 auf 97 Tage"),
+  l5: t("38% of customers", "38 % der Kunden"),
+  l6: t("fell by 12% from the first to the second quarter", "sanken vom ersten zum zweiten Quartal um 12 %"),
+  l7: t("so the second service is where retention is won", "also wird Bindung beim zweiten Service gewonnen"),
+  l8: t("which gives us a two-month window to act", "was uns ein Zeitfenster von zwei Monaten zum Handeln gibt"),
+  l9: t("so ranking accounts by order count misleads account planning", "also führt eine Rangfolge nach Bestellanzahl die Account-Planung in die Irre"),
+});

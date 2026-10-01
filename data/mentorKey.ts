@@ -93,22 +93,22 @@ export function KEY_R2(): Partial<R2State> {
       "Die KI-Vorhersageplattform (70.000 €) bleibt draußen. Die sechs finanzierten Punkte kosten 165.000 € von 180.000 €, die Lizenz brächte den Plan 55.000 € über das Budget, und niemand könnte ihre Prognosen einem Account Manager erklären.",
     ),
     pickup: tt(
-      "If the health score catches fewer than 60% of cancellations by month 5, we test a predictive model on our own data in month 6.",
-      "Erkennt der Health Score bis Monat 5 weniger als 60 % der Kündigungen, testen wir in Monat 6 ein Vorhersagemodell auf unseren eigenen Daten.",
+      "If 4 or more customers cancel by month 6 because the health score had not flagged them beforehand, then we fund the AI prediction platform from the next budget round.",
+      "Kündigen bis Monat 6 mindestens 4 Kunden, weil der Health Score sie vorher nicht markiert hatte, finanzieren wir die KI-Vorhersageplattform aus der nächsten Budgetrunde.",
     ),
     decision: "stage",
     assumptions: [
-      tt("Falling usage predicts churn this year as it did last year. This is wrong if fewer than 25% of flagged customers who are not called leave by month 5.", "Sinkende Nutzung sagt Churn dieses Jahr so voraus wie letztes Jahr. Das ist falsch, wenn bis Monat 5 weniger als 25 % der markierten, nicht angerufenen Kunden gehen."),
-      tt("A call within two weeks changes the outcome. This is wrong if the save rate of called customers is not above 45% by month 5.", "Ein Anruf innerhalb von zwei Wochen ändert das Ergebnis. Das ist falsch, wenn die Save Rate der angerufenen Kunden bis Monat 5 nicht über 45 % liegt."),
-      tt("The usage, order and ticket data can be joined for almost every customer. This is wrong if fewer than 95% of active customers are joined by month 2.", "Nutzungs-, Bestell- und Ticketdaten lassen sich für fast jeden Kunden verbinden. Das ist falsch, wenn bis Monat 2 weniger als 95 % der aktiven Kunden verbunden sind."),
+      tt("Falling usage still predicts leaving, although last year's rule rests on only 40 customers. I am wrong if by month 5 the score had flagged fewer than 70% of the customers who cancelled.", "Sinkende Nutzung sagt das Gehen weiter voraus, obwohl die Regel des letzten Jahres auf nur 40 Kunden beruht. Ich liege falsch, wenn der Score bis Monat 5 weniger als 70 % der gekündigten Kunden vorher markiert hatte."),
+      tt("A call within two weeks changes the outcome, although SmartData has never run a call playbook. I am wrong if the share of flagged customers who stay is not above 38% by month 5.", "Ein Anruf innerhalb von zwei Wochen ändert das Ergebnis, obwohl SmartData noch nie ein Anruf-Playbook hatte. Ich liege falsch, wenn der Anteil der gehaltenen markierten Kunden bis Monat 5 nicht über 38 % liegt."),
+      tt("Usage, order and ticket data can be joined for almost every customer, although the tickets are only 90% complete. I am wrong if fewer than 90% of active customers are joined by month 3.", "Nutzungs-, Bestell- und Ticketdaten lassen sich für fast jeden Kunden verbinden, obwohl die Tickets nur zu 90 % vollständig sind. Ich liege falsch, wenn bis Monat 3 weniger als 90 % der aktiven Kunden verbunden sind."),
     ],
     tripKpi: MODEL_TRIPWIRE.kpi,
     tripThreshold: String(MODEL_TRIPWIRE.threshold),
     tripMonth: MODEL_TRIPWIRE.month,
     tripAction: "adjust",
     challenge: tt(
-      "I keep the programme and fix the rule. Fifteen of 60 flags were project customers, which is exactly the case the “no action” rule for project customers is for, so the early-warning rules get that filter this month. The other 45 flags are the customers we lost last year without noticing. Going back to judgement would bring back the blind spot, so we check the save rate in month 5 as agreed.",
-      "Ich behalte das Programm und korrigiere die Regel. Fünfzehn von 60 Markierungen waren Projektkunden; genau für diesen Fall gibt es die Regel „keine Aktion“ für Projektkunden, also bekommen die Frühwarnregeln diesen Filter in diesem Monat. Die anderen 45 Markierungen sind die Kunden, die wir letztes Jahr unbemerkt verloren haben. Zurück zum Bauchgefühl hieße, den blinden Fleck zurückzuholen, also prüfen wir die Save Rate wie vereinbart in Monat 5.",
+      "I keep the programme and fix the rule. Fifteen of the 60 flags (25%) were project customers in their quiet season: they go quiet for a few months every year, so the rule needs a filter that compares the drop with the same months last year, and the early-warning rules get it this month. The other 45 flags are customers whose usage really fell, the ones we lost last year without noticing. Going back to judgement would bring back that blind spot, so we check the save rate in month 5 as agreed.",
+      "Ich behalte das Programm und korrigiere die Regel. Fünfzehn der 60 Markierungen (25 %) waren Projektkunden in ihrer ruhigen Saison: Sie werden jedes Jahr für ein paar Monate still, also braucht die Regel einen Filter, der den Rückgang mit denselben Monaten des Vorjahrs vergleicht, und die Frühwarnregeln bekommen ihn in diesem Monat. Die anderen 45 Markierungen sind Kunden, deren Nutzung wirklich sank, die, die wir letztes Jahr unbemerkt verloren haben. Zurück zum Bauchgefühl hieße, diesen blinden Fleck zurückzuholen, also prüfen wir die Save Rate wie vereinbart in Monat 5.",
     ),
   };
 }

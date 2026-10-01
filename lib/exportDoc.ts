@@ -159,6 +159,11 @@ ${FIGURE_IDS.map((f) => `<tr><td class="id">${esc(FIGURES[f].label)}</td><td cla
     : "";
   const cost = totalCost(chosen);
   const order = l1.order.filter((id) => chosen.includes(id));
+  // Optional blocks (CLAUDE.md #35) may be left unanswered: the file says so instead of showing empty tables as if something was missing.
+  const optNote = (empty: boolean) => (empty ? `<p class="muted">${esc(tt("— (optional block, not answered)", "— (optionaler Block, nicht beantwortet)"))}</p>` : "");
+  const empty13 = l1.valuable.length === 0 && l1.churners.length === 0 && l1.insights.every((a) => !a.text.trim());
+  const empty14 = !l1.reflect.interpret.trim() && !l1.reflect.causation.trim() && !l1.reflect.decider.trim();
+  const empty22 = PATTERN_IDS.every((x) => !l1.rows[x].risk && !l1.rows[x].meaning && !l1.rows[x].measure) && l1.unc.length === 0 && !l1.misread.trim();
 
   return `${header("Customer Data Analysis File", tt("Levels 1 and 2 · Knowledge and application", "Level 1 und 2 · Wissen und Anwendung"), p)}
 <h2>${esc(tt("The case", "Der Fall"))}</h2>
@@ -172,10 +177,12 @@ ${FIGURE_IDS.map((f) => `<tr><td class="id">${esc(FIGURES[f].label)}</td><td cla
 ${figTable}
 ${para(l1.meaning)}
 <h2>${esc(tt("1.3 · Valuable customers, customers at risk, three insights", "1.3 · Wertvolle Kunden, gefährdete Kunden, drei Insights"))}</h2>
+${optNote(empty13)}
 <p><strong>${esc(tt("Most valuable to keep:", "Am wertvollsten zu halten:"))}</strong> ${names(l1.valuable)}</p>
 <p><strong>${esc(tt("Most likely to churn:", "Höchstes Abwanderungsrisiko:"))}</strong> ${names(l1.churners)}</p>
 ${insights}
 <h2>${esc(tt("1.4 · Coaching reflection", "1.4 · Coaching-Reflexion"))}</h2>
+${optNote(empty14)}
 <h3>${esc(tt("Why is data worthless without interpretation?", "Warum sind Daten ohne Interpretation wertlos?"))}</h3>${para(l1.reflect.interpret)}
 <h3>${esc(tt("Where could the data mislead?", "Wo könnten die Daten in die Irre führen?"))}</h3>${para(l1.reflect.causation)}
 <h3>${esc(tt("How would a data-driven decision-maker proceed?", "Wie würde eine datengetriebene Entscheiderin vorgehen?"))}</h3>${para(l1.reflect.decider)}
@@ -185,6 +192,7 @@ ${insights}
 <table><thead><tr><th>${esc(tt("Record", "Datensatz"))}</th><th>${esc(tt("Outcome", "Ergebnis"))}</th><th>${esc(tt("Behaviour", "Verhalten"))}</th><th>${esc(tt("Pattern", "Muster"))}</th></tr></thead><tbody>${tagRows}</tbody></table>${tagNote}
 ${tallySvg(p)}
 <h2>${esc(tt("2.2 · What each pattern says, how risky it is, what to do", "2.2 · Was jedes Muster sagt, wie riskant es ist, was zu tun ist"))}</h2>
+${optNote(empty22)}
 <table><thead><tr><th>${esc(tt("Pattern", "Muster"))}</th><th>${esc(tt("Churn risk", "Abwanderungsrisiko"))}</th><th>${esc(tt("What it says", "Was es sagt"))}</th><th>${esc(tt("Measure", "Maßnahme"))}</th></tr></thead><tbody>${rowRows}</tbody></table>
 <h3>${esc(tt("Uncertainties in the forecast", "Unsicherheiten der Prognose"))}</h3>${uncList}
 <h3>${esc(tt("A pattern I could misread", "Ein Muster, das ich falsch lesen könnte"))}</h3>${para(l1.misread)}
@@ -204,12 +212,14 @@ ${para(l1.why)}
 export function memoBody(p: Persisted): string {
   const { l1, r2 } = p;
   const name = p.participant.name.trim();
-  const risks = PATTERN_IDS.filter((x) => l1.rows[x].risk).map((x) => `${PATTERNS[x].label} (${RISK_LABEL[l1.rows[x].risk!]})`);
+  const t1 = tallyOf(l1.tags);
+  // Quotes only Route 1's Core answers (Block 2.1 tags, Block 2.3 measures), CLAUDE.md #40.
   const situation =
-    risks.length || l1.chosen.length
-      ? `<blockquote><strong>${esc(tt("Where Route 1 left off.", "Wo Route 1 aufgehört hat."))}</strong> ${esc(tt("Churn risk per pattern:", "Abwanderungsrisiko pro Muster:"))} ${esc(risks.join(", ") || "—")}. ${esc(tt("Measures chosen:", "Gewählte Maßnahmen:"))} ${esc(l1.chosen.map((id) => MEASURE_BY_ID[id].name).join(", ") || "—")}.</blockquote>`
+    t1.tagged || l1.chosen.length
+      ? `<blockquote><strong>${esc(tt("Where Route 1 left off.", "Wo Route 1 aufgehört hat."))}</strong> ${esc(tt(`Records tagged as fading: ${t1.count.fading}, of which ${t1.left.fading} left.`, `Als nachlassend eingeordnete Datensätze: ${t1.count.fading}, davon ${t1.left.fading} gegangen.`))} ${esc(tt("Measures chosen:", "Gewählte Maßnahmen:"))} ${esc(l1.chosen.map((id) => MEASURE_BY_ID[id].name).join(", ") || "—")}.</blockquote>`
       : `<p class="muted">${esc(tt("Route 1 is not finished, so there is nothing to quote yet. Nothing is blocked.", "Route 1 ist nicht fertig, daher gibt es noch nichts zu zitieren. Nichts ist gesperrt."))}</p>`;
   const principleRows = r2.principles.map((c) => `<tr><td class="id">${esc(PRINCIPLES[c].name)}</td><td>${cell(r2.principleText[c] ?? "")}</td></tr>`).join("");
+  const skipped = tt("— (optional block, not answered)", "— (optionaler Block, nicht beantwortet)");
   const sourceRows = SOURCES.map((s) => `<tr><td class="id">${esc(s.name)}</td><td class="num">${s.complete}%</td><td>${r2.sources[s.id] ? esc(USE_LABEL[r2.sources[s.id]]) : "—"}</td></tr>`).join("");
   const B = ["—", tt("Low", "Niedrig"), tt("Mid", "Mittel"), tt("High", "Hoch")];
   const compRows = r2.comps
@@ -228,7 +238,7 @@ export function memoBody(p: Persisted): string {
   const k = r2.tripKpi ? KPI_BY_ID[r2.tripKpi] : null;
   const thr = parseAmount(r2.tripThreshold);
   const u = (x: typeof k) => (x ? (x.unit === "%" ? tt("%", " %") : ` ${x.unit}`) : "");
-  const action = { "": "—", scale: tt("scale up anyway", "trotzdem ausweiten"), adjust: tt("adjust one rule and continue", "eine Regel anpassen und weitermachen"), stop: tt("stop the rollout and reconsider the architecture", "den Rollout stoppen und die Architektur überdenken") }[r2.tripAction];
+  const action = { "": "—", scale: tt("scale up anyway", "trotzdem ausweiten"), adjust: tt("adjust one item and continue", "einen Punkt anpassen und weitermachen"), stop: tt("stop the rollout and reconsider the architecture", "den Rollout stoppen und die Architektur überdenken") }[r2.tripAction];
 
   return `${header("Data Decision Memo", tt("Level 3 · Management decision", "Level 3 · Managemententscheidung"), p)}
 <p class="muted">${esc(tt(`To: the board · From: ${name || "Chief Data Officer"}, SmartData IT Solutions GmbH · Budget ${euro(R2_BUDGET)} over ${R2_MONTHS} months.`, `An: den Vorstand · Von: ${name || "Chief Data Officer"}, SmartData IT Solutions GmbH · Budget ${euro(R2_BUDGET)} über ${R2_MONTHS} Monate.`))}</p>
@@ -236,17 +246,19 @@ export function memoBody(p: Persisted): string {
 <p>${esc(tt("Decisions based on experience, data available but not used, customer behaviour hard to assess, varying data quality, a limited budget and high time pressure. The board asks for a data-driven decision architecture and a decision now.", "Entscheidungen aus Erfahrung, Daten verfügbar, aber ungenutzt, Kundenverhalten schwer einzuschätzen, schwankende Datenqualität, begrenztes Budget und hoher Zeitdruck. Der Vorstand verlangt eine datengetriebene Entscheidungsarchitektur und eine Entscheidung jetzt."))}</p>
 ${situation}
 <h2>${esc(tt("2 · Target vision of the data-driven organisation", "2 · Zielbild der datengetriebenen Organisation"))}</h2>
-<table><thead><tr><th>${esc(tt("Principle", "Prinzip"))}</th><th>${esc(tt("What it means at SmartData", "Was es bei SmartData bedeutet"))}</th></tr></thead><tbody>${principleRows || `<tr><td colspan="2">—</td></tr>`}</tbody></table>
+<table><thead><tr><th>${esc(tt("Principle", "Prinzip"))}</th><th>${esc(tt("What it means at SmartData", "Was es bei SmartData bedeutet"))}</th></tr></thead><tbody>${principleRows || `<tr><td colspan="2">${esc(skipped)}</td></tr>`}</tbody></table>
 <h2>${esc(tt("3 · Relevant data sources", "3 · Relevante Datenquellen"))}</h2>
-<table><thead><tr><th>${esc(tt("Source", "Quelle"))}</th><th class="num">${esc(tt("Complete", "Vollständig"))}</th><th>${esc(tt("Use", "Verwendung"))}</th></tr></thead><tbody>${sourceRows}</tbody></table>
+<table><thead><tr><th>${esc(tt("Source", "Quelle"))}</th><th class="num">${esc(tt("Complete", "Vollständig"))}</th><th>${esc(tt("Use", "Verwendung"))}</th></tr></thead><tbody>${Object.keys(r2.sources).length ? sourceRows : `<tr><td colspan="3">${esc(skipped)}</td></tr>`}</tbody></table>
 <h2>${esc(tt("4 · The system for behavioural analysis", "4 · Das System für Verhaltensanalyse"))}</h2>
-<table><thead><tr><th>${esc(tt("Component", "Baustein"))}</th>${CRITERIA.map((c) => `<th>${esc(c.name)}</th>`).join("")}</tr></thead><tbody>${compRows || `<tr><td colspan="5">—</td></tr>`}</tbody></table>
+<table><thead><tr><th>${esc(tt("Component", "Baustein"))}</th>${CRITERIA.map((c) => `<th>${esc(c.name)}</th>`).join("")}</tr></thead><tbody>${compRows || `<tr><td colspan="5">${esc(skipped)}</td></tr>`}</tbody></table>
 <h3>${esc(tt("Why the greatest lever is the greatest", "Warum der größte Hebel der größte ist"))}</h3>${para(r2.greatestWhy)}
 <h2>${esc(tt("5 · Decision logic: when to intervene", "5 · Entscheidungslogik: wann eingreifen"))}</h2>
-<table><thead><tr><th>${esc(tt("Signal", "Signal"))}</th><th class="num">${esc(tt("Lift · cases", "Lift · Fälle"))}</th><th>${esc(tt("What happens", "Was passiert"))}</th><th>${esc(tt("Who acts", "Wer handelt"))}</th></tr></thead><tbody>${logicRows}</tbody></table>
+<table><thead><tr><th>${esc(tt("Signal", "Signal"))}</th><th class="num">${esc(tt("Lift · cases", "Lift · Fälle"))}</th><th>${esc(tt("What happens", "Was passiert"))}</th><th>${esc(tt("Who acts", "Wer handelt"))}</th></tr></thead><tbody>${Object.keys(r2.logic).length ? logicRows : `<tr><td colspan="4">${esc(skipped)}</td></tr>`}</tbody></table>
 <h2>${esc(tt("6 · Prioritised measures for implementation", "6 · Priorisierte Maßnahmen zur Umsetzung"))}</h2>
 <table><thead><tr><th>${esc(tt("Item", "Punkt"))}</th><th>${esc(tt("Status", "Status"))}</th><th class="num">${esc(tt("Cost", "Kosten"))}</th><th class="num">${esc(tt("Start", "Start"))}</th><th>${esc(tt("Owner", "Owner"))}</th><th>${esc(tt("Trigger", "Trigger"))}</th></tr></thead><tbody>${archRows}</tbody></table>
-<p class="legend">${esc(tt(`Funded ${euro(archCost(r2))} of ${euro(R2_BUDGET)} (${euro(archLeft(r2))} left) across ${fundedIds.length} item${fundedIds.length === 1 ? "" : "s"}.`, `Finanziert ${euro(archCost(r2))} von ${euro(R2_BUDGET)} (${euro(archLeft(r2))} übrig) über ${fundedIds.length} ${fundedIds.length === 1 ? "Punkt" : "Punkte"}.`))}</p>
+<p class="legend">${esc(archLeft(r2) >= 0
+      ? tt(`Funded ${euro(archCost(r2))} of ${euro(R2_BUDGET)} (${euro(archLeft(r2))} left) across ${fundedIds.length} item${fundedIds.length === 1 ? "" : "s"}.`, `Finanziert ${euro(archCost(r2))} von ${euro(R2_BUDGET)} (${euro(archLeft(r2))} übrig) über ${fundedIds.length} ${fundedIds.length === 1 ? "Punkt" : "Punkte"}.`)
+      : tt(`Funded ${euro(archCost(r2))} against ${euro(R2_BUDGET)}: ${euro(-archLeft(r2))} over the budget, across ${fundedIds.length} items. The reasons are in the triggers and the text below.`, `Finanziert ${euro(archCost(r2))} gegen ${euro(R2_BUDGET)}: ${euro(-archLeft(r2))} über dem Budget, über ${fundedIds.length} Punkte. Die Gründe stehen in den Triggern und im Text unten.`))}</p>
 ${ARCH_IDS.every((id) => r2.alloc[id]) ? "" : `<h3>${esc(tt("Left out, and when we look again", "Weggelassen, und wann wir es wieder ansehen"))}</h3>${para(r2.postponed)}<p><strong>${esc(tt("Pickup point:", "Pickup Point:"))}</strong> ${cell(r2.pickup)}</p>`}
 <h2>${esc(tt("7 · The decision", "7 · Die Entscheidung"))}</h2>
 <p><strong>${d ? esc(d.label) : "—"}</strong>${d ? ` — ${esc(d.detail)}` : ""}</p>
@@ -254,7 +266,7 @@ ${ARCH_IDS.every((id) => r2.alloc[id]) ? "" : `<h3>${esc(tt("Left out, and when 
 <ol>${r2.assumptions.map((a) => `<li>${cell(a)}</li>`).join("")}</ol>
 <h3>Tripwire</h3>
 <p>${esc(tt(`${k ? k.label : "—"} reaches ${thr !== null && k ? `${num(thr)}${u(k)}` : "—"} by month ${r2.tripMonth ?? "—"} (today: ${k ? `${num(k.baseline)}${u(k)}` : "—"}). If it is missed: ${action}.`, `${k ? k.label : "—"} erreicht ${thr !== null && k ? `${num(thr)}${u(k)}` : "—"} bis Monat ${r2.tripMonth ?? "—"} (heute: ${k ? `${num(k.baseline)}${u(k)}` : "—"}). Wenn er verfehlt wird: ${action}.`))}</p>
-<h3>${esc(tt("If the early warnings raise false alarms in month 3", "Wenn die Frühwarnungen in Monat 3 Fehlalarme auslösen"))}</h3>${para(r2.challenge)}
+<h3>${esc(tt("If the early warnings raise false alarms in month 4", "Wenn die Frühwarnungen in Monat 4 Fehlalarme auslösen"))}</h3>${para(r2.challenge)}
 
 <div class="foot">${esc(tt(`Checks requested: ${r2.checks}`, `Angeforderte Prüfungen: ${r2.checks}`))}<br/>${esc(tt(`Generated ${dateLabel()}.`, `Erstellt am ${dateLabel()}.`))}</div>`;
 }

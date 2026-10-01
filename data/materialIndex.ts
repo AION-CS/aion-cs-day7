@@ -2,24 +2,31 @@ import { bi, t } from "@/lib/lang";
 import { TASK1_MINUTES, TASK2_MINUTES } from "@/lib/routes";
 
 /** One registry for every material card: the rail, the cards and the task chips all read it. */
-export type MaterialId = "A1" | "A2" | "A3" | "A4" | "A5" | "A6" | "A7" | "B1" | "B2" | "B3" | "B4" | "B5";
+export type MaterialId = "A1" | "A2" | "A3" | "A4" | "A5" | "A6" | "A7" | "B1" | "B2" | "B3" | "B4" | "B5" | "B6";
 export type Block = "A" | "B";
-export type MaterialMeta = { id: MaterialId; block: Block; title: string; minutes: number };
+export type MaterialMeta = { id: MaterialId; block: Block; title: string; minutes: number; optional?: boolean };
 
-/** Day 7: Materi A (Route 1, Levels 1 and 2) seven cards, 60 minutes; Materi B (Route 2, Level 3) five cards, 60 minutes. */
+/**
+ * Day 7: Materi A (Route 1, Levels 1 and 2) seven cards, 60 minutes; Materi B (Route 2, Level 3) six cards, 60 minutes.
+ *
+ * `optional: true` marks a card that no Core task block (lib/progress.ts OPTIONAL_BLOCKS) draws on: collapsed by default via
+ * OptionalSection, one click to open, never removed (CLAUDE.md #35). A card a Core block needs stays Core even if an Optional block also
+ * cites it.
+ */
 export const MATERIALS: MaterialMeta[] = bi([
   { id: "A1" as MaterialId, block: "A" as Block, title: t("Gut feeling or data: what data-driven retention means", "Bauchgefühl oder Daten: was datengetriebene Kundenbindung heißt"), minutes: 8 },
   { id: "A2" as MaterialId, block: "A" as Block, title: t("From data to decision: data, information, insight", "Von Daten zur Entscheidung: Daten, Information, Insight"), minutes: 9 },
-  { id: "A3" as MaterialId, block: "A" as Block, title: t("Big data and smart insights: chances and limits", "Big Data und Smart Insights: Chancen und Grenzen"), minutes: 8 },
+  { id: "A3" as MaterialId, block: "A" as Block, title: t("Big data and smart insights: chances and limits", "Big Data und Smart Insights: Chancen und Grenzen"), minutes: 8, optional: true },
   { id: "A4" as MaterialId, block: "A" as Block, title: t("A first forecast: rates, lift and revenue at risk", "Eine erste Prognose: Raten, Lift und gefährdeter Umsatz"), minutes: 10 },
   { id: "A5" as MaterialId, block: "A" as Block, title: t("Recognising behaviour patterns: anchored, fading, dormant, cyclical", "Verhaltensmuster erkennen: verankert, nachlassend, ruhend, zyklisch"), minutes: 9 },
   { id: "A6" as MaterialId, block: "A" as Block, title: t("From pattern to action: value, risk, measure and uncertainty", "Vom Muster zur Handlung: Wert, Risiko, Maßnahme und Unsicherheit"), minutes: 8 },
   { id: "A7" as MaterialId, block: "A" as Block, title: t("Prioritising data-based measures: explanatory power, feasibility, effect", "Datenbasierte Maßnahmen priorisieren: Erklärungskraft, Machbarkeit, Wirkung"), minutes: 8 },
-  { id: "B1" as MaterialId, block: "B" as Block, title: t("Data as a competitive advantage: the target vision", "Daten als Wettbewerbsvorteil: das Zielbild"), minutes: 12 },
-  { id: "B2" as MaterialId, block: "B" as Block, title: t("Relevant data sources: the decision first, then the data", "Relevante Datenquellen: zuerst die Entscheidung, dann die Daten"), minutes: 12 },
-  { id: "B3" as MaterialId, block: "B" as Block, title: t("A system for behavioural analysis: four tests", "Ein System für Verhaltensanalyse: vier Tests"), minutes: 12 },
-  { id: "B4" as MaterialId, block: "B" as Block, title: t("Decision logic: when to intervene", "Entscheidungslogik: wann eingreifen"), minutes: 12 },
-  { id: "B5" as MaterialId, block: "B" as Block, title: t("Deciding with uncertain data, and the architecture", "Mit unsicheren Daten entscheiden, und die Architektur"), minutes: 12 },
+  { id: "B1" as MaterialId, block: "B" as Block, title: t("Data as a competitive advantage: the target vision", "Daten als Wettbewerbsvorteil: das Zielbild"), minutes: 10, optional: true },
+  { id: "B2" as MaterialId, block: "B" as Block, title: t("Relevant data sources: the decision first, then the data", "Relevante Datenquellen: zuerst die Entscheidung, dann die Daten"), minutes: 10, optional: true },
+  { id: "B3" as MaterialId, block: "B" as Block, title: t("A system for behavioural analysis: four tests", "Ein System für Verhaltensanalyse: vier Tests"), minutes: 10, optional: true },
+  { id: "B4" as MaterialId, block: "B" as Block, title: t("Decision logic: when to intervene", "Entscheidungslogik: wann eingreifen"), minutes: 10, optional: true },
+  { id: "B5" as MaterialId, block: "B" as Block, title: t("Deciding with uncertain data, and the architecture", "Mit unsicheren Daten entscheiden, und die Architektur"), minutes: 10 },
+  { id: "B6" as MaterialId, block: "B" as Block, title: t("Numbers you can defend: where a trigger number and a month come from", "Zahlen, die Sie vertreten können: woher die Zahl eines Triggers und sein Monat kommen"), minutes: 10 },
 ]);
 
 export const MATERIAL_BY_ID = Object.fromEntries(MATERIALS.map((m) => [m.id, m])) as Record<MaterialId, MaterialMeta>;

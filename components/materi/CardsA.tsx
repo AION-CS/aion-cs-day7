@@ -3,6 +3,7 @@
 import { Bul, Diagram } from "@/components/materi/kit";
 import { BigDataLimits, ForecastExample, GutVsData, Ladder, LinkOrCause, PatternCurves, ScoreExample } from "@/components/materi/diagramsA";
 import { Callout, DataTable, MaterialCard } from "@/components/ui/MaterialCard";
+import { ShowMore } from "@/components/ui/ShowMore";
 import { LEVEL_TESTS } from "@/data/ladder";
 import { PATTERNS, PATTERN_IDS, PATTERN_PAIR_TESTS, RISK_RULE } from "@/data/patterns";
 import { EXPLAIN_RULE } from "@/data/measures";
@@ -25,18 +26,22 @@ export function CardA1() {
       ]}
       sources={["davenport2007", "kahneman2011"]}
     >
-      <p className={p}>
-        {tt(
-          "Davenport and Harris (2007) describe firms that compete on analytics: they make recurring decisions from data and keep experience for what data cannot see. Kahneman (2011) explains why the alternative fails: people judge by the cases that come easily to mind, and a customer who calls every week comes to mind more easily than one who has quietly stopped logging in.",
-          "Davenport und Harris (2007) beschreiben Firmen, die mit Analytik konkurrieren: Sie treffen wiederkehrende Entscheidungen aus Daten und nutzen Erfahrung für das, was Daten nicht sehen. Kahneman (2011) erklärt, warum die Alternative scheitert: Menschen urteilen nach den Fällen, die ihnen leicht einfallen, und ein Kunde, der jede Woche anruft, fällt einem leichter ein als einer, der sich still nicht mehr anmeldet.",
-        )}
-      </p>
+      <ShowMore id="A1" part="research" label={tt("Show the research behind this card", "Die Forschung hinter dieser Karte zeigen")}>
+        <p className={p}>
+          {tt(
+            "Davenport and Harris (2007) describe firms that compete on analytics: they make recurring decisions from data and keep experience for what data cannot see. Kahneman (2011) explains why the alternative fails: people judge by the cases that come easily to mind, and a customer who calls every week comes to mind more easily than one who has quietly stopped logging in.",
+            "Davenport und Harris (2007) beschreiben Firmen, die mit Analytik konkurrieren: Sie treffen wiederkehrende Entscheidungen aus Daten und nutzen Erfahrung für das, was Daten nicht sehen. Kahneman (2011) erklärt, warum die Alternative scheitert: Menschen urteilen nach den Fällen, die ihnen leicht einfallen, und ein Kunde, der jede Woche anruft, fällt einem leichter ein als einer, der sich still nicht mehr anmeldet.",
+          )}
+        </p>
+      </ShowMore>
       <Diagram label={tt("Who gets a call: gut feeling against usage data · a worked example on Weser Cloud", "Wer einen Anruf bekommt: Bauchgefühl gegen Nutzungsdaten · ein Beispiel mit Weser Cloud")} caption={tt("Switch between the two lists, then show who actually left.", "Wechseln Sie zwischen den beiden Listen und zeigen Sie dann, wer tatsächlich ging.")}>
         <GutVsData />
       </Diagram>
-      <Callout label={tt("What “data-driven” does not mean", "Was „datengetrieben“ nicht heißt")} tone="rust">
-        <p>{tt("It does not mean letting a number decide alone. The GDPR (Art. 22) limits decisions about people made only by automated processing, and a score nobody can explain cannot be trusted by the account manager who has to act on it.", "Es heißt nicht, eine Zahl allein entscheiden zu lassen. Die DSGVO (Art. 22) begrenzt Entscheidungen über Menschen, die nur auf automatisierter Verarbeitung beruhen, und einem Wert, den niemand erklären kann, vertraut der Account Manager nicht, der danach handeln soll.")}</p>
-      </Callout>
+      <ShowMore id="A1" part="extra" label={tt("Show what “data-driven” does not mean (GDPR)", "Zeigen, was „datengetrieben“ nicht heißt (DSGVO)")}>
+        <Callout label={tt("What “data-driven” does not mean", "Was „datengetrieben“ nicht heißt")} tone="rust">
+          <p>{tt("It does not mean letting a number decide alone. The GDPR (Art. 22) limits decisions about people made only by automated processing, and a score nobody can explain cannot be trusted by the account manager who has to act on it.", "Es heißt nicht, eine Zahl allein entscheiden zu lassen. Die DSGVO (Art. 22) begrenzt Entscheidungen über Menschen, die nur auf automatisierter Verarbeitung beruhen, und einem Wert, den niemand erklären kann, vertraut der Account Manager nicht, der danach handeln soll.")}</p>
+        </Callout>
+      </ShowMore>
     </MaterialCard>
   );
 }
@@ -52,12 +57,14 @@ export function CardA2() {
       ]}
       sources={["ackoff1989", "rowley2007"]}
     >
-      <p className={p}>
-        {tt(
-          "Ackoff (1989) described a ladder from data to information, knowledge and understanding; Rowley (2007) showed how the steps are defined across the literature. For sales, a practical version has four steps: data, information, insight and decision. Each step adds meaning; none is useful on its own until the last one happens.",
-          "Ackoff (1989) beschrieb eine Leiter von Daten über Information zu Wissen und Verständnis; Rowley (2007) zeigte, wie die Stufen in der Literatur definiert werden. Für den Vertrieb hat eine praktische Fassung vier Stufen: Daten, Information, Insight und Entscheidung. Jede Stufe fügt Bedeutung hinzu; keine ist für sich nützlich, bis die letzte passiert.",
-        )}
-      </p>
+      <ShowMore id="A2" part="research" label={tt("Show the research behind this card", "Die Forschung hinter dieser Karte zeigen")}>
+        <p className={p}>
+          {tt(
+            "Ackoff (1989) described a ladder from data to information, knowledge and understanding; Rowley (2007) showed how the steps are defined across the literature. For sales, a practical version has four steps: data, information, insight and decision. Each step adds meaning; none is useful on its own until the last one happens.",
+            "Ackoff (1989) beschrieb eine Leiter von Daten über Information zu Wissen und Verständnis; Rowley (2007) zeigte, wie die Stufen in der Literatur definiert werden. Für den Vertrieb hat eine praktische Fassung vier Stufen: Daten, Information, Insight und Entscheidung. Jede Stufe fügt Bedeutung hinzu; keine ist für sich nützlich, bis die letzte passiert.",
+          )}
+        </p>
+      </ShowMore>
       <Diagram label={tt("Four steps from data to decision · a worked example on Weser Cloud", "Vier Stufen von Daten zur Entscheidung · ein Beispiel mit Weser Cloud")} caption={tt("Click a step to see the same customer at that step, then try the worked sort below it.", "Klicken Sie eine Stufe an, um denselben Kunden auf dieser Stufe zu sehen, und probieren Sie dann die Beispielsortierung darunter.")}>
         <Ladder />
       </Diagram>
@@ -79,12 +86,14 @@ export function CardA3() {
       ]}
       sources={["mcafee2012", "boyd2012", "gdpr2016"]}
     >
-      <p className={p}>
-        {tt(
-          "McAfee and Brynjolfsson (2012) showed that firms which decide from data outperform those that do not, but only when leaders ask what the data says and act on it. boyd and Crawford (2012) warn that bigger data is not better data: it has gaps, it favours those who leave traces, and it can be read to confirm what one already believed. The GDPR (Art. 5) adds that personal data may be collected only for a stated purpose and not more than needed.",
-          "McAfee und Brynjolfsson (2012) zeigten, dass Firmen, die aus Daten entscheiden, besser abschneiden als andere, aber nur, wenn Führungskräfte fragen, was die Daten sagen, und danach handeln. boyd und Crawford (2012) warnen, dass größere Daten nicht bessere Daten sind: Sie haben Lücken, bevorzugen die, die Spuren hinterlassen, und können so gelesen werden, dass sie bestätigen, was man ohnehin glaubte. Die DSGVO (Art. 5) ergänzt, dass personenbezogene Daten nur für einen genannten Zweck und nicht mehr als nötig erhoben werden dürfen.",
-        )}
-      </p>
+      <ShowMore id="A3" part="research" label={tt("Show the research behind this card", "Die Forschung hinter dieser Karte zeigen")}>
+        <p className={p}>
+          {tt(
+            "McAfee and Brynjolfsson (2012) showed that firms which decide from data outperform those that do not, but only when leaders ask what the data says and act on it. boyd and Crawford (2012) warn that bigger data is not better data: it has gaps, it favours those who leave traces, and it can be read to confirm what one already believed. The GDPR (Art. 5) adds that personal data may be collected only for a stated purpose and not more than needed.",
+            "McAfee und Brynjolfsson (2012) zeigten, dass Firmen, die aus Daten entscheiden, besser abschneiden als andere, aber nur, wenn Führungskräfte fragen, was die Daten sagen, und danach handeln. boyd und Crawford (2012) warnen, dass größere Daten nicht bessere Daten sind: Sie haben Lücken, bevorzugen die, die Spuren hinterlassen, und können so gelesen werden, dass sie bestätigen, was man ohnehin glaubte. Die DSGVO (Art. 5) ergänzt, dass personenbezogene Daten nur für einen genannten Zweck und nicht mehr als nötig erhoben werden dürfen.",
+          )}
+        </p>
+      </ShowMore>
       <Diagram label={tt("Five data sources of Weser Cloud on three questions", "Fünf Datenquellen von Weser Cloud nach drei Fragen")} caption={tt("Choose a source and read whether it is a smart insight, noise, or worth fixing first.", "Wählen Sie eine Quelle und lesen Sie, ob sie ein Smart Insight, Rauschen oder erst zu verbessern ist.")}>
         <BigDataLimits />
       </Diagram>
@@ -107,25 +116,29 @@ export function CardA4() {
       ]}
       sources={["provost2013", "neslin2006"]}
     >
-      <p className={p}>
-        {tt(
-          "Provost and Fawcett (2013) name the base rate, the lift and the expected value as the first tools of any forecast. Neslin and colleagues (2006) compared churn models across many firms and judged them by lift: how much more often the customers a model flags actually leave than customers in general. The worked example uses Weser Cloud's numbers; the steps are the same for any company.",
-          "Provost und Fawcett (2013) nennen Basisrate, Lift und Erwartungswert als erste Werkzeuge jeder Prognose. Neslin und Kollegen (2006) verglichen Churn-Modelle vieler Firmen und maßen sie am Lift: wie viel häufiger die von einem Modell markierten Kunden tatsächlich gehen als Kunden im Allgemeinen. Das Beispiel nutzt die Zahlen von Weser Cloud; die Schritte sind für jedes Unternehmen gleich.",
-        )}
-      </p>
+      <ShowMore id="A4" part="research" label={tt("Show the research behind this card", "Die Forschung hinter dieser Karte zeigen")}>
+        <p className={p}>
+          {tt(
+            "Provost and Fawcett (2013) name the base rate, the lift and the expected value as the first tools of any forecast. Neslin and colleagues (2006) compared churn models across many firms and judged them by lift: how much more often the customers a model flags actually leave than customers in general. The worked example uses Weser Cloud's numbers; the steps are the same for any company.",
+            "Provost und Fawcett (2013) nennen Basisrate, Lift und Erwartungswert als erste Werkzeuge jeder Prognose. Neslin und Kollegen (2006) verglichen Churn-Modelle vieler Firmen und maßen sie am Lift: wie viel häufiger die von einem Modell markierten Kunden tatsächlich gehen als Kunden im Allgemeinen. Das Beispiel nutzt die Zahlen von Weser Cloud; die Schritte sind für jedes Unternehmen gleich.",
+          )}
+        </p>
+      </ShowMore>
       <Diagram label={tt("A first forecast · worked example on Weser Cloud (Case assumption)", "Eine erste Prognose · Beispiel mit Weser Cloud (Fallannahme)")} caption={tt("Move the slider to change how many customers show the signal this quarter.", "Bewegen Sie den Regler, um zu ändern, wie viele Kunden das Signal in diesem Quartal zeigen.")}>
         <ForecastExample />
       </Diagram>
-      <DataTable
-        head={[tt("Step", "Schritt"), tt("Calculation · Weser Cloud", "Rechnung · Weser Cloud"), tt("Result", "Ergebnis")]}
-        rows={[
-          [tt("1 · Churn rate, usage fell", "1 · Churn Rate, Nutzung gesunken"), `${WESER.falling.left} ÷ ${WESER.falling.customers} × 100`, pct(r.rate)],
-          [tt("2 · Churn rate, everyone else", "2 · Churn Rate, alle übrigen"), `${WESER.stable.left} ÷ ${WESER.stable.customers} × 100`, pct(r.other)],
-          [tt("3 · Lift", "3 · Lift"), `${r.rate} ÷ ${r.other}`, tt(`${num(r.lift)} times`, `${num(r.lift)}-mal`)],
-          [tt("4 · Revenue at risk this year", "4 · Gefährdeter Umsatz in diesem Jahr"), `${WESER.fallingNow} × ${r.rate / 100} × ${euro(WESER.revenue)}`, euro(r.risk)],
-        ]}
-        caption={tt("The four steps, on other numbers than the task", "Die vier Schritte, mit anderen Zahlen als in der Aufgabe")}
-      />
+      <ShowMore id="A4" part="calc" label={tt("Show Weser Cloud's four steps in a table", "Die vier Schritte von Weser Cloud in einer Tabelle zeigen")}>
+        <DataTable
+          head={[tt("Step", "Schritt"), tt("Calculation · Weser Cloud", "Rechnung · Weser Cloud"), tt("Result", "Ergebnis")]}
+          rows={[
+            [tt("1 · Churn rate, usage fell", "1 · Churn Rate, Nutzung gesunken"), `${WESER.falling.left} ÷ ${WESER.falling.customers} × 100`, pct(r.rate)],
+            [tt("2 · Churn rate, everyone else", "2 · Churn Rate, alle übrigen"), `${WESER.stable.left} ÷ ${WESER.stable.customers} × 100`, pct(r.other)],
+            [tt("3 · Lift", "3 · Lift"), `${r.rate} ÷ ${r.other}`, tt(`${num(r.lift)} times`, `${num(r.lift)}-mal`)],
+            [tt("4 · Revenue at risk this year", "4 · Gefährdeter Umsatz in diesem Jahr"), `${WESER.fallingNow} × ${r.rate / 100} × ${euro(WESER.revenue)}`, euro(r.risk)],
+          ]}
+          caption={tt("The four steps, on other numbers than the task", "Die vier Schritte, mit anderen Zahlen als in der Aufgabe")}
+        />
+      </ShowMore>
     </MaterialCard>
   );
 }
@@ -142,20 +155,24 @@ export function CardA5() {
       ]}
       sources={["fader2005", "ascarza2018"]}
     >
-      <p className={p}>
-        {tt(
-          "Fader, Hardie and Lee (2005) showed that three pieces of behaviour say most about a customer's future: how recently they bought, how often, and for how much. Usage data adds the shape over time. Reading the shape, not a single month, is what separates a customer who is leaving from one who is simply in a quiet season.",
-          "Fader, Hardie und Lee (2005) zeigten, dass drei Verhaltensmerkmale das meiste über die Zukunft eines Kunden sagen: wie kürzlich er kaufte, wie oft und für wie viel. Nutzungsdaten fügen die Form über die Zeit hinzu. Die Form zu lesen, nicht einen einzelnen Monat, trennt einen Kunden, der geht, von einem, der nur in einer ruhigen Saison ist.",
-        )}
-      </p>
+      <ShowMore id="A5" part="research" label={tt("Show the research behind this card", "Die Forschung hinter dieser Karte zeigen")}>
+        <p className={p}>
+          {tt(
+            "Fader, Hardie and Lee (2005) showed that three pieces of behaviour say most about a customer's future: how recently they bought, how often, and for how much. Usage data adds the shape over time. Reading the shape, not a single month, is what separates a customer who is leaving from one who is simply in a quiet season.",
+            "Fader, Hardie und Lee (2005) zeigten, dass drei Verhaltensmerkmale das meiste über die Zukunft eines Kunden sagen: wie kürzlich er kaufte, wie oft und für wie viel. Nutzungsdaten fügen die Form über die Zeit hinzu. Die Form zu lesen, nicht einen einzelnen Monat, trennt einen Kunden, der geht, von einem, der nur in einer ruhigen Saison ist.",
+          )}
+        </p>
+      </ShowMore>
       <Diagram label={tt("Four Weser Cloud customers, twelve months of usage", "Vier Kunden von Weser Cloud, zwölf Monate Nutzung")} caption={tt("Click a line or a button to highlight one customer and read its pattern and test.", "Klicken Sie eine Linie oder Schaltfläche an, um einen Kunden hervorzuheben und sein Muster und seinen Test zu lesen.")}>
         <PatternCurves />
       </Diagram>
-      <DataTable
-        head={[tt("Pattern", "Muster"), tt("What it looks like", "Wie es aussieht"), tt("The line", "Die Linie")]}
-        rows={PATTERN_IDS.map((x) => [PATTERNS[x].label, PATTERNS[x].means, PATTERNS[x].shape])}
-        caption={tt("The four patterns", "Die vier Muster")}
-      />
+      <ShowMore id="A5" part="table" label={tt("Show the four patterns in a table", "Die vier Muster in einer Tabelle zeigen")}>
+        <DataTable
+          head={[tt("Pattern", "Muster"), tt("What it looks like", "Wie es aussieht"), tt("The line", "Die Linie")]}
+          rows={PATTERN_IDS.map((x) => [PATTERNS[x].label, PATTERNS[x].means, PATTERNS[x].shape])}
+          caption={tt("The four patterns", "Die vier Muster")}
+        />
+      </ShowMore>
     </MaterialCard>
   );
 }
@@ -176,25 +193,29 @@ export function CardA6() {
       ]}
       sources={["pearl2018", "ascarza2018"]}
     >
-      <p className={p}>
-        {tt(
-          "Pearl and Mackenzie (2018) explain why a link in the data is not yet a cause: a third factor can drive both things you see. Ascarza and colleagues (2018) add a practical point for retention: act on the customers an action can change, not only on those most likely to leave. A cyclical customer is likely to go quiet and does not need saving; a fading one can still be won back.",
-          "Pearl und Mackenzie (2018) erklären, warum ein Zusammenhang in den Daten noch keine Ursache ist: Ein dritter Faktor kann beides antreiben, was man sieht. Ascarza und Kollegen (2018) ergänzen einen praktischen Punkt für die Kundenbindung: Handeln Sie bei den Kunden, die eine Maßnahme verändern kann, nicht nur bei denen, die am ehesten gehen. Ein zyklischer Kunde wird wahrscheinlich still und muss nicht gerettet werden; ein nachlassender kann noch zurückgewonnen werden.",
-        )}
-      </p>
+      <ShowMore id="A6" part="research" label={tt("Show the research behind this card", "Die Forschung hinter dieser Karte zeigen")}>
+        <p className={p}>
+          {tt(
+            "Pearl and Mackenzie (2018) explain why a link in the data is not yet a cause: a third factor can drive both things you see. Ascarza and colleagues (2018) add a practical point for retention: act on the customers an action can change, not only on those most likely to leave. A cyclical customer is likely to go quiet and does not need saving; a fading one can still be won back.",
+            "Pearl und Mackenzie (2018) erklären, warum ein Zusammenhang in den Daten noch keine Ursache ist: Ein dritter Faktor kann beides antreiben, was man sieht. Ascarza und Kollegen (2018) ergänzen einen praktischen Punkt für die Kundenbindung: Handeln Sie bei den Kunden, die eine Maßnahme verändern kann, nicht nur bei denen, die am ehesten gehen. Ein zyklischer Kunde wird wahrscheinlich still und muss nicht gerettet werden; ein nachlassender kann noch zurückgewonnen werden.",
+          )}
+        </p>
+      </ShowMore>
       <Diagram label={tt("Many tickets and leaving · a worked example on Weser Cloud", "Viele Tickets und Abwanderung · ein Beispiel mit Weser Cloud")} caption={tt("Show the third factor and read how the fix changes.", "Zeigen Sie den dritten Faktor und lesen Sie, wie sich die Lösung ändert.")}>
         <LinkOrCause />
       </Diagram>
-      <DataTable
-        head={[tt("Weser customer", "Kunde von Weser"), tt("Yearly revenue", "Jahresumsatz"), tt("Orders a year", "Bestellungen pro Jahr"), tt("Usage trend · days since last order", "Nutzungstrend · Tage seit letzter Bestellung"), tt("Reading", "Lesart")]}
-        rows={[
-          ["Nordhafen", euro(52000), "3", tt("+2% · 90", "+2 % · 90"), tt("Most valuable: highest revenue, orders rarely.", "Am wertvollsten: höchster Umsatz, bestellt selten.")],
-          ["Deich IT", euro(6000), "30", tt("0% · 8", "0 % · 8"), tt("Frequent, not valuable.", "Häufig, nicht wertvoll.")],
-          ["Bremer Glas", euro(15000), "5", tt("−40% · 140", "−40 % · 140"), tt("Churn risk: usage down and a long gap.", "Abwanderungsrisiko: Nutzung gesunken und langer Abstand.")],
-          ["Kranbau Ost", euro(20000), "2", tt("+25% · 170", "+25 % · 170"), tt("A cycle: long gap, usage rising again.", "Ein Zyklus: langer Abstand, Nutzung steigt wieder.")],
-        ]}
-        caption={tt("Value and risk read from the same table (Case assumption)", "Wert und Risiko aus derselben Tabelle gelesen (Fallannahme)")}
-      />
+      <ShowMore id="A6" part="table" label={tt("Show value and risk read from one table", "Wert und Risiko aus einer Tabelle gelesen zeigen")}>
+        <DataTable
+          head={[tt("Weser customer", "Kunde von Weser"), tt("Yearly revenue", "Jahresumsatz"), tt("Orders a year", "Bestellungen pro Jahr"), tt("Usage trend · days since last order", "Nutzungstrend · Tage seit letzter Bestellung"), tt("Reading", "Lesart")]}
+          rows={[
+            ["Nordhafen", euro(52000), "3", tt("+2% · 90", "+2 % · 90"), tt("Most valuable: highest revenue, orders rarely.", "Am wertvollsten: höchster Umsatz, bestellt selten.")],
+            ["Deich IT", euro(6000), "30", tt("0% · 8", "0 % · 8"), tt("Frequent, not valuable.", "Häufig, nicht wertvoll.")],
+            ["Bremer Glas", euro(15000), "5", tt("−40% · 140", "−40 % · 140"), tt("Churn risk: usage down and a long gap.", "Abwanderungsrisiko: Nutzung gesunken und langer Abstand.")],
+            ["Kranbau Ost", euro(20000), "2", tt("+25% · 170", "+25 % · 170"), tt("A cycle: long gap, usage rising again.", "Ein Zyklus: langer Abstand, Nutzung steigt wieder.")],
+          ]}
+          caption={tt("Value and risk read from the same table (Case assumption)", "Wert und Risiko aus derselben Tabelle gelesen (Fallannahme)")}
+        />
+      </ShowMore>
     </MaterialCard>
   );
 }
@@ -214,21 +235,25 @@ export function CardA7() {
       ]}
       sources={["hubbard2014", "ascarza2018"]}
     >
-      <p className={p}>
-        {tt(
-          "Hubbard (2014) advises starting from the decision and asking what evidence would change it: a measure resting on a clear pattern across many customers deserves more trust than one resting on a vendor's promise. The plan names the evaluation for this day: explanatory power × feasibility × effect.",
-          "Hubbard (2014) rät, von der Entscheidung auszugehen und zu fragen, welche Evidenz sie ändern würde: Eine Maßnahme, die auf einem klaren Muster über viele Kunden ruht, verdient mehr Vertrauen als eine, die auf einem Anbieterversprechen ruht. Der Plan nennt die Bewertung für diesen Tag: Erklärungskraft × Machbarkeit × Wirkung.",
-        )}
-      </p>
+      <ShowMore id="A7" part="research" label={tt("Show the research behind this card", "Die Forschung hinter dieser Karte zeigen")}>
+        <p className={p}>
+          {tt(
+            "Hubbard (2014) advises starting from the decision and asking what evidence would change it: a measure resting on a clear pattern across many customers deserves more trust than one resting on a vendor's promise. The plan names the evaluation for this day: explanatory power × feasibility × effect.",
+            "Hubbard (2014) rät, von der Entscheidung auszugehen und zu fragen, welche Evidenz sie ändern würde: Eine Maßnahme, die auf einem klaren Muster über viele Kunden ruht, verdient mehr Vertrauen als eine, die auf einem Anbieterversprechen ruht. Der Plan nennt die Bewertung für diesen Tag: Erklärungskraft × Machbarkeit × Wirkung.",
+          )}
+        </p>
+      </ShowMore>
       <Diagram label={tt("Three measures of Weser Cloud, scored", "Drei Maßnahmen von Weser Cloud, bewertet")} caption={tt("Click the evidence line or a score to change it, and read how the ranking moves.", "Klicken Sie die Evidenzzeile oder einen Wert an, um ihn zu ändern, und lesen Sie, wie sich die Rangfolge bewegt.")}>
         <ScoreExample />
       </Diagram>
-      <Bul
-        items={[
-          tt("Explanatory power is read from the “rests on” line, never guessed.", "Die Erklärungskraft wird aus der „ruht auf“-Zeile gelesen, nie geschätzt."),
-          tt("A cheap, easy measure can still score low when nothing in the data supports it.", "Eine günstige, leichte Maßnahme kann trotzdem niedrig punkten, wenn nichts in den Daten sie stützt."),
-        ]}
-      />
+      <ShowMore id="A7" part="extra" label={tt("Show two notes on the scores", "Zwei Hinweise zu den Werten zeigen")}>
+        <Bul
+          items={[
+            tt("Explanatory power is read from the “rests on” line, never guessed.", "Die Erklärungskraft wird aus der „ruht auf“-Zeile gelesen, nie geschätzt."),
+            tt("A cheap, easy measure can still score low when nothing in the data supports it.", "Eine günstige, leichte Maßnahme kann trotzdem niedrig punkten, wenn nichts in den Daten sie stützt."),
+          ]}
+        />
+      </ShowMore>
     </MaterialCard>
   );
 }

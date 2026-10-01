@@ -12,7 +12,9 @@ import { MentorGuide } from "@/components/ui/MentorGuide";
 import { PlacementBoard } from "@/components/ui/PlacementBoard";
 import { RevealHint } from "@/components/ui/RevealHint";
 import { WritingHelp } from "@/components/ui/WritingHelp";
-import { LEVEL_TAGS, LEVEL_TESTS, LINES } from "@/data/ladder";
+import { ExampleAnswer } from "@/components/ui/ExampleAnswer";
+import { BlockMissing } from "@/components/ui/BlockMissing";
+import { LEVEL_TAGS, LEVEL_TESTS, LINES, LINE_KEY } from "@/data/ladder";
 import type { LevelTag, LineId } from "@/data/ladder";
 import { BASES, BASIS_LABEL, CUSTOMERS, FIGURES, FIGURE_IDS, INSIGHT_COUNT, INSIGHT_FRAME, INSIGHT_MIN, PICK, SMART } from "@/data/forecast";
 import type { Basis, CustId, FigureId } from "@/data/forecast";
@@ -42,10 +44,11 @@ export function Block11() {
       id="block-1-1"
       title={tt("Block 1.1 · Data, information or insight?", "Block 1.1 · Daten, Information oder Insight?")}
       kind="OBJECTIVE"
+      core
       minutes={BLOCK_MINUTES["1.1"]}
       findIt={tt("Route 1 → Task 1 → the nine lines on the sort board below, from SmartData's logs, reports and analysis notes. Answer on the sort board.", "Route 1 → Task 1 → die neun Zeilen auf der Sortiertafel unten, aus Logs, Berichten und Analysenotizen von SmartData. Antworten Sie auf der Sortiertafel.")}
     >
-      <MaterialRefs refs={["A2"]} />
+      <MaterialRefs refs={["A2", "A1"]} />
       <PlacementBoard<LevelTag>
         items={LINES.map((r) => ({ id: r.id, meta: r.source, text: r.text }))}
         bins={LEVEL_TAGS.map((t) => ({ id: t.id, label: t.label, hint: t.hint }))}
@@ -56,6 +59,7 @@ export function Block11() {
         undoCount={l1.sortHistory.length}
         redoCount={l1.sortFuture.length}
         domId={IDS.line}
+        keyPhrases={LINE_KEY}
         clues={Object.fromEntries(LINES.map((r) => [r.id, r.clue]))}
         reasons={Object.fromEntries(LINES.map((r) => [r.id, r.why]))}
         result={l1.sortResult}
@@ -92,9 +96,24 @@ export function Block11() {
         onChange={(v) => patch({ extraInsight: v })}
         min={MIN_LINE}
         rows={2}
-      />
+      >
+        <WritingHelp
+          id="extra-insight-kit"
+          refs={[
+            { label: tt("The nine lines", "Die neun Zeilen"), value: tt("take one line of information, or a fact from the case", "nehmen Sie eine Informationszeile oder einen Fakt aus dem Fall"), target: IDS.line(LINES[0].id) },
+            { label: tt("The frame (Materi A2)", "Der Rahmen (Materi A2)"), value: tt("what the data shows · for which customers · so what it means or what to do", "was die Daten zeigen · bei welchen Kunden · also was es bedeutet oder was zu tun ist"), target: "mat-A2" },
+            { label: tt("Why data needs a question (Materi A1)", "Warum Daten eine Frage brauchen (Materi A1)"), value: tt("someone has to ask “so what?”", "jemand muss „Na und?“ fragen"), target: "mat-A1" },
+          ]}
+          steps={[
+            tt("Pick one line of information or a fact from the case and say it in your own words.", "Wählen Sie eine Informationszeile oder einen Fakt aus dem Fall und sagen Sie ihn mit eigenen Worten."),
+            tt("Add “so …”: what it means for SmartData, or what someone should do about it.", "Ergänzen Sie „also …“: was es für SmartData bedeutet oder was jemand dagegen tun sollte."),
+          ]}
+        />
+      </TextBox>
+      <ExampleAnswer id="extra-insight-example" guide={extraInsightGuide()} />
       {mentor && <MentorGuide guide={extraInsightGuide()} />}
       <AnswerKey block={sortKey()} />
+      <BlockMissing block="1.1" route={1} />
     </AnswerBlock>
   );
 }
@@ -124,15 +143,16 @@ export function Block12() {
       id="block-1-2"
       title={tt("Block 1.2 · A first forecast: three figures", "Block 1.2 · Eine erste Prognose: drei Werte")}
       kind="OBJECTIVE + JUDGED"
+      core
       minutes={BLOCK_MINUTES["1.2"]}
       findIt={tt("Route 1 → Task 1 → the three tables “Last year”, “This quarter” and “All customers” directly below. Answer in the fields under the tables.", "Route 1 → Task 1 → die drei Tabellen „Letztes Jahr“, „Dieses Quartal“ und „Alle Kunden“ direkt darunter. Antworten Sie in den Feldern unter den Tabellen.")}
     >
-      <MaterialRefs refs={["A4"]} />
+      <MaterialRefs refs={["A4", "A1"]} />
       <p className="text-body text-ink">
         <Gloss>
           {tt(
-            "SmartData's usage and contract records show how customers whose usage fell behaved last year, and how many show the same signal now. The numbers you need are in the tables below. Look for them first; the buttons “Show where the numbers are” and “Show the formula” are there if you get stuck. The method is taught in",
-            "Die Nutzungs- und Vertragsdaten von SmartData zeigen, wie sich Kunden mit gesunkener Nutzung letztes Jahr verhielten, und wie viele jetzt dasselbe Signal zeigen. Die Zahlen stehen in den Tabellen unten. Suchen Sie sie zuerst selbst; die Schaltflächen „Zeigen, wo die Zahlen stehen“ und „Formel zeigen“ helfen, wenn Sie nicht weiterkommen. Die Methode steht in",
+            "SmartData's usage and contract records show how customers whose usage fell behaved last year, and how many show the same signal now. (“Usage” is how much a customer logs in to and works on the platform; “left” means the customer cancelled the contract within six months.) The numbers you need are in the tables below. Look for them first; the buttons “Show where the numbers are” and “Show the formula” are there if you get stuck. The method is taught in",
+            "Die Nutzungs- und Vertragsdaten von SmartData zeigen, wie sich Kunden mit gesunkener Nutzung letztes Jahr verhielten, und wie viele jetzt dasselbe Signal zeigen. („Nutzung“ ist, wie viel ein Kunde sich anmeldet und auf der Plattform arbeitet; „gegangen“ heißt, der Kunde hat den Vertrag innerhalb von sechs Monaten gekündigt.) Die Zahlen stehen in den Tabellen unten. Suchen Sie sie zuerst selbst; die Schaltflächen „Zeigen, wo die Zahlen stehen“ und „Formel zeigen“ helfen, wenn Sie nicht weiterkommen. Die Methode steht in",
           )}
         </Gloss>{" "}
         <button type="button" onClick={() => scrollToAndFlash("mat-A4", "ref")} className="font-semibold text-accent underline decoration-dotted underline-offset-2">
@@ -252,9 +272,16 @@ export function Block12() {
             tt("Say how much yearly revenue is at risk this quarter.", "Sagen Sie, wie viel Jahresumsatz in diesem Quartal gefährdet ist."),
             tt("Finish with where SmartData should act first, and say it as an estimate.", "Schließen Sie damit, wo SmartData zuerst handeln sollte, und sagen Sie es als Schätzung."),
           ]}
-          refs={[{ label: tt("Customers with falling usage now", "Kunden mit jetzt gesunkener Nutzung"), value: num(SMART.fallingNow), target: "fc-now" }]}
+          refs={[
+            { label: tt("Your F1 (churn rate, usage fell)", "Ihr F1 (Churn Rate, Nutzung gesunken)"), value: l1.fig.F1 || tt("not filled yet", "noch leer"), target: IDS.figure("F1") },
+            { label: tt("Your F2 (lift)", "Ihr F2 (Lift)"), value: l1.fig.F2 || tt("not filled yet", "noch leer"), target: IDS.figure("F2") },
+            { label: tt("Your F3 (revenue at risk)", "Ihr F3 (gefährdeter Umsatz)"), value: l1.fig.F3 || tt("not filled yet", "noch leer"), target: IDS.figure("F3") },
+            { label: tt("Customers with falling usage now", "Kunden mit jetzt gesunkener Nutzung"), value: num(SMART.fallingNow), target: "fc-now" },
+            { label: tt("A forecast is an estimate (Materi A1)", "Eine Prognose ist eine Schätzung (Materi A1)"), value: tt("say “about”, not “will”", "sagen Sie „etwa“, nicht „wird“"), target: "mat-A1" },
+          ]}
         />
       </TextBox>
+      <ExampleAnswer id="meaning-example" guide={meaningGuide()} />
       {mentor && <MentorGuide guide={meaningGuide()} />}
       <CheckBar onCheck={check} checkLabel={tt("Check my figures and sentence", "Meine Werte und meinen Satz prüfen")} checks={l1.checks} />
       {l1.checks > 0 && (
@@ -267,6 +294,7 @@ export function Block12() {
               )}
         </Reading>
       )}
+      <BlockMissing block="1.2" route={1} />
     </AnswerBlock>
   );
 }
@@ -286,6 +314,7 @@ export function Block13() {
       id="block-1-3"
       title={tt("Block 1.3 · Valuable customers, customers at risk, three insights", "Block 1.3 · Wertvolle Kunden, gefährdete Kunden, drei Insights")}
       kind="OBJECTIVE + JUDGED"
+      core={false}
       minutes={BLOCK_MINUTES["1.3"]}
       findIt={tt("Route 1 → Task 1 → the table “Eight customers” below: orders, days since the last order, services used, revenue and usage trend. Answer in the two lists and the three insight fields under it.", "Route 1 → Task 1 → die Tabelle „Acht Kunden“ unten: Bestellungen, Tage seit der letzten Bestellung, genutzte Services, Umsatz und Nutzungstrend. Antworten Sie in den zwei Listen und den drei Insight-Feldern darunter.")}
     >
@@ -379,7 +408,22 @@ export function Block13() {
                 </select>
                 {a.basis && <p className="mt-1 text-micro normal-case tracking-normal text-ash">{tt("Chosen: ", "Gewählt: ")}{BASIS_LABEL[a.basis]}</p>}
               </div>
+              <WritingHelp
+                id={`insight-kit-${i}`}
+                refs={[
+                  { label: tt("The table of eight customers", "Die Tabelle der acht Kunden"), value: tt("orders · days since the last order · services · revenue · usage trend", "Bestellungen · Tage seit der letzten Bestellung · Services · Umsatz · Nutzungstrend"), target: "block-1-3" },
+                  { label: tt("The frame", "Der Rahmen"), value: INSIGHT_FRAME.v, target: IDS.insight(i) },
+                  { label: tt("The three kinds of data (Materi A6)", "Die drei Arten von Daten (Materi A6)"), value: BASES.map((b) => b.short).join(" · "), target: "mat-A6" },
+                  { label: tt("Data your other insights use", "Daten, die Ihre anderen Insights nutzen"), value: l1.insights.filter((_, j) => j !== i && l1.insights[j].basis).map((b) => BASIS_LABEL[b.basis!]).join(", ") || tt("none yet", "noch keine"), target: IDS.insight(i === 0 ? 1 : 0) },
+                ]}
+                steps={[
+                  tt("Choose a kind of data no other insight uses.", "Wählen Sie eine Art von Daten, die kein anderer Insight nutzt."),
+                  tt("Say what that data shows about a named customer or group in the table.", "Sagen Sie, was diese Daten über einen genannten Kunden oder eine Gruppe in der Tabelle zeigen."),
+                  tt("Finish with “so …”: what it means or what to do.", "Schließen Sie mit „also …“: was es bedeutet oder was zu tun ist."),
+                ]}
+              />
             </TextBox>
+            <ExampleAnswer id={`insight-example-${i}`} guide={insightGuide(i)} />
             {mentor && <MentorGuide guide={insightGuide(i)} />}
           </div>
         ))}
@@ -392,6 +436,7 @@ export function Block13() {
             : tt(`${l1.insFlagged.length} insight${l1.insFlagged.length === 1 ? " is" : "s are"} outlined: the data is missing or repeated, the text is short, or it draws no conclusion.`, `${l1.insFlagged.length} ${l1.insFlagged.length === 1 ? "Insight ist" : "Insights sind"} markiert: Die Daten fehlen oder wiederholen sich, der Text ist kurz, oder er zieht keinen Schluss.`)}
         </Reading>
       )}
+      <BlockMissing block="1.3" route={1} />
     </AnswerBlock>
   );
 }
@@ -412,6 +457,7 @@ export function Block14() {
       id="block-1-4"
       title={tt("Block 1.4 · Coaching reflection: from Level 1 to Level 2", "Block 1.4 · Coaching-Reflexion: von Level 1 zu Level 2")}
       kind="JUDGED"
+      core={false}
       minutes={BLOCK_MINUTES["1.4"]}
       findIt={tt("Route 1 → Task 1 → your own answers in Blocks 1.1 to 1.3, and the third-factor diagram in Materi A6. Answer in the three fields below.", "Route 1 → Task 1 → Ihre eigenen Antworten in den Blöcken 1.1 bis 1.3 und das Diagramm zum dritten Faktor in Materi A6. Antworten Sie in den drei Feldern unten.")}
     >
@@ -421,10 +467,32 @@ export function Block14() {
       </p>
       {fields.map((f) => (
         <div key={f.k} className="space-y-1.5">
-          <TextBox id={IDS.reflect(f.k)} label={f.label} help={f.help} value={l1.reflect[f.k]} onChange={(v) => patch((s) => ({ reflect: { ...s.reflect, [f.k]: v } }))} min={MIN_LINE} rows={3} />
+          <TextBox id={IDS.reflect(f.k)} label={f.label} help={f.help} value={l1.reflect[f.k]} onChange={(v) => patch((s) => ({ reflect: { ...s.reflect, [f.k]: v } }))} min={MIN_LINE} rows={3}>
+            <WritingHelp
+              id={`reflect-kit-${f.k}`}
+              refs={
+                f.k === "interpret"
+                  ? [
+                      { label: tt("Your own insight in Block 1.1", "Ihr eigener Insight in Block 1.1"), value: l1.extraInsight.trim() ? tt("written", "geschrieben") : tt("not written yet", "noch nicht geschrieben"), target: IDS.extraInsight },
+                      { label: tt("Why data needs a question (Materi A1)", "Warum Daten eine Frage brauchen (Materi A1)"), value: tt("data answers “what”, a person asks “so what”", "Daten beantworten das „Was“, ein Mensch fragt das „Na und“"), target: "mat-A1" },
+                    ]
+                  : f.k === "causation"
+                    ? [
+                        { label: tt("A link is not a cause (Materi A6)", "Ein Zusammenhang ist keine Ursache (Materi A6)"), value: tt("tickets and leaving, and a failed migration behind both", "Tickets und Abwanderung, und eine gescheiterte Migration hinter beiden"), target: "mat-A6" },
+                        { label: tt("The twelve records (Block 2.1)", "Die zwölf Datensätze (Block 2.1)"), value: tt("K-145: usage fell after the IT lead left", "K-145: Die Nutzung sank, nachdem der IT-Leiter ging"), target: IDS.rec("p04") },
+                      ]
+                    : [
+                        { label: tt("The decision rules of a data-driven decision-maker (Materi A1)", "Die Entscheidungsregeln einer datengetriebenen Entscheiderin (Materi A1)"), value: tt("start from the decision · count the cases · act on strong signals", "von der Entscheidung ausgehen · die Fälle zählen · auf starke Signale handeln"), target: "mat-A1" },
+                      ]
+              }
+              steps={[tt("Name one concrete thing you found or saw in this task.", "Nennen Sie eine konkrete Sache, die Sie in dieser Aufgabe gefunden oder gesehen haben."), tt("Say what it means for how SmartData works.", "Sagen Sie, was sie für die Arbeitsweise von SmartData bedeutet.")]}
+            />
+          </TextBox>
+          <ExampleAnswer id={`reflect-example-${f.k}`} guide={reflectGuide(f.k)} />
           {mentor && <MentorGuide guide={reflectGuide(f.k)} />}
         </div>
       ))}
+      <BlockMissing block="1.4" route={1} />
     </AnswerBlock>
   );
 }

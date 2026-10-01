@@ -1,6 +1,7 @@
 "use client";
 
 import { ExportBar } from "@/components/ui/ExportBar";
+import { OptionalSection } from "@/components/ui/OptionalSection";
 import { Block11, Block12, Block13, Block14 } from "@/components/task1/Part1";
 import { Block21, Block22, Block23 } from "@/components/task1/Part2";
 import { Callout } from "@/components/ui/MaterialCard";
@@ -11,7 +12,7 @@ import { euro, tt } from "@/lib/lang";
 import { exportName } from "@/lib/slug";
 import { usePersisted } from "@/store/usePersisted";
 import { Gloss } from "@/lib/glossify";
-import { TASK1_MINUTES } from "@/lib/routes";
+import { BLOCK_MINUTES, TASK1_MINUTES } from "@/lib/routes";
 
 function CaseBrief() {
   return (
@@ -33,7 +34,7 @@ function CaseBrief() {
           <p className="smallcaps">{tt("What you have", "Was Sie haben")}</p>
           <ul className="mt-1 list-disc space-y-1 pl-4 text-ink">
             <li>{tt("Nine lines from reports, logs and analysis notes (Block 1.1).", "Neun Zeilen aus Berichten, Logs und Analysenotizen (Block 1.1).")}</li>
-            <li>{tt("Last year's usage records and eight current customers (Blocks 1.2 and 1.3).", "Die Nutzungsdaten des letzten Jahres und acht aktuelle Kunden (Blöcke 1.2 und 1.3).")}</li>
+            <li>{tt("Last year's usage records (Block 1.2); eight current customers (optional Block 1.3).", "Die Nutzungsdaten des letzten Jahres (Block 1.2); acht aktuelle Kunden (optionaler Block 1.3).")}</li>
             <li>{tt("Twelve customer records from last year, with what happened next (Block 2.1).", "Zwölf Kundendatensätze aus dem letzten Jahr, mit dem, was danach geschah (Block 2.1).")}</li>
           </ul>
         </div>
@@ -52,12 +53,14 @@ function CaseBrief() {
           </ul>
         </div>
         <div className="rounded-lg border border-line bg-canvas p-3 text-caption">
-          <p className="smallcaps">{tt(`How the task runs · about ${TASK1_MINUTES} min`, `So läuft die Aufgabe · ca. ${TASK1_MINUTES} Min.`)}</p>
+          <p className="smallcaps">{tt(`How the task runs · four core blocks, about ${BLOCK_MINUTES["1.1"] + BLOCK_MINUTES["1.2"] + BLOCK_MINUTES["2.1"] + BLOCK_MINUTES["2.3"]} min`, `So läuft die Aufgabe · vier Kernblöcke, ca. ${BLOCK_MINUTES["1.1"] + BLOCK_MINUTES["1.2"] + BLOCK_MINUTES["2.1"] + BLOCK_MINUTES["2.3"]} Min.`)}</p>
           <ol className="mt-1 list-decimal space-y-1 pl-4 text-ink">
-            <li>{tt("Turn data into insights and a first forecast; find the valuable and the at-risk customers (Level 1).", "Aus Daten Insights und eine erste Prognose machen; die wertvollen und die gefährdeten Kunden finden (Level 1).")}</li>
-            <li>{tt("Recognise four behaviour patterns, say what each means and what to do (Level 2).", "Vier Verhaltensmuster erkennen, sagen, was jedes bedeutet und was zu tun ist (Level 2).")}</li>
-            <li>{tt("Choose three data-based measures and defend the order.", "Drei datenbasierte Maßnahmen wählen und die Reihenfolge begründen.")}</li>
+            <li>{tt("Block 1.1: sort nine report lines into data, information or insight (Level 1).", "Block 1.1: neun Berichtszeilen in Daten, Information oder Insight sortieren (Level 1).")}</li>
+            <li>{tt("Block 1.2: a first forecast: how much riskier falling usage is, and what is at stake (Level 1).", "Block 1.2: eine erste Prognose: wie viel riskanter sinkende Nutzung ist und worum es geht (Level 1).")}</li>
+            <li>{tt("Block 2.1: recognise four behaviour patterns in twelve records (Level 2).", "Block 2.1: vier Verhaltensmuster in zwölf Datensätzen erkennen (Level 2).")}</li>
+            <li>{tt("Block 2.3: choose three data-based measures and defend the order (Level 2).", "Block 2.3: drei datenbasierte Maßnahmen wählen und die Reihenfolge begründen (Level 2).")}</li>
           </ol>
+          <p className="mt-1 text-ash">{tt(`Three more blocks (about ${TASK1_MINUTES - BLOCK_MINUTES["1.1"] - BLOCK_MINUTES["1.2"] - BLOCK_MINUTES["2.1"] - BLOCK_MINUTES["2.3"]} min) are optional and folded.`, `Drei weitere Blöcke (ca. ${TASK1_MINUTES - BLOCK_MINUTES["1.1"] - BLOCK_MINUTES["1.2"] - BLOCK_MINUTES["2.1"] - BLOCK_MINUTES["2.3"]} Min.) sind optional und eingeklappt.`)}</p>
         </div>
       </div>
       <Callout label={tt("Case assumption", "Fallannahme")} tone="amber">
@@ -89,18 +92,39 @@ export function Task1() {
   return (
     <section id="task-1" aria-labelledby="task1-h" className="space-y-6">
       <header className="space-y-1">
-        <p className="smallcaps text-accent">{tt(`Task 1 · about ${TASK1_MINUTES} minutes`, `Task 1 · ca. ${TASK1_MINUTES} Minuten`)}</p>
+        <p className="smallcaps text-accent">{tt(`Task 1 · four core blocks, optional blocks folded`, `Task 1 · vier Kernblöcke, optionale Blöcke eingeklappt`)}</p>
         <h2 id="task1-h">{tt("Customer Data Analysis: from data to insight", "Customer Data Analysis: von Daten zu Erkenntnis")}</h2>
       </header>
       <CaseBrief />
       <PartHeading id="part-1" n={1} title={tt("Turn data into insight", "Aus Daten Erkenntnis machen")} level={tt("Level 1 · Knowledge", "Level 1 · Wissen")} />
       <Block11 />
       <Block12 />
-      <Block13 />
-      <Block14 />
+      <OptionalSection
+        id="block-1-3"
+        title={tt("Block 1.3 · Valuable customers, customers at risk, three insights", "Block 1.3 · Wertvolle Kunden, gefährdete Kunden, drei Insights")}
+        minutes={BLOCK_MINUTES["1.3"]}
+        reason={tt("Practises the same step as Block 1.1 (turning data into an insight) on eight customers; the measures of Block 2.3 do not need it.", "Übt denselben Schritt wie Block 1.1 (aus Daten einen Insight machen) an acht Kunden; die Maßnahmen in Block 2.3 brauchen es nicht.")}
+      >
+        <Block13 />
+      </OptionalSection>
+      <OptionalSection
+        id="block-1-4"
+        title={tt("Block 1.4 · Coaching reflection: from Level 1 to Level 2", "Block 1.4 · Coaching-Reflexion: von Level 1 zu Level 2")}
+        minutes={BLOCK_MINUTES["1.4"]}
+        reason={tt("A reflective bridge between Level 1 and Level 2, not content the Customer Data Analysis File itself needs.", "Eine reflektierende Brücke zwischen Level 1 und Level 2, kein Inhalt, den die Customer Data Analysis File selbst braucht.")}
+      >
+        <Block14 />
+      </OptionalSection>
       <PartHeading id="part-2" n={2} title={tt("Recognise patterns and act", "Muster erkennen und handeln")} level={tt("Level 2 · Application", "Level 2 · Anwendung")} />
       <Block21 />
-      <Block22 />
+      <OptionalSection
+        id="block-2-2"
+        title={tt("Block 2.2 · What each pattern says, how risky it is, and what to do", "Block 2.2 · Was jedes Muster sagt, wie riskant es ist, und was zu tun ist")}
+        minutes={BLOCK_MINUTES["2.2"]}
+        reason={tt("Reads a risk, a meaning and a measure for each pattern from your tags in Block 2.1; Block 2.3 can be answered without it.", "Liest für jedes Muster ein Risiko, eine Bedeutung und eine Maßnahme aus Ihrer Zuordnung in Block 2.1; Block 2.3 lässt sich auch ohne es beantworten.")}
+      >
+        <Block22 />
+      </OptionalSection>
       <Block23 />
       <ExportBar
         id="export-l1l2"

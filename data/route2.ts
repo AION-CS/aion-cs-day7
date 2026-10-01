@@ -118,21 +118,180 @@ export type LogicRow = { action: Action | null; owner: LogicOwner | null };
 
 /* ------------------------------------------------------------------ 3.5 · prioritised measures for implementation */
 
+/**
+ * "SmartData today" (Route 2, printed once above Block 3.5): every figure a trigger, a pickup point, a tripwire or an assumption number is
+ * found from. All Case assumptions, consistent with Route 1's usage records (40 + 360 customers, 14 + 18 leavers, 52 flagged now).
+ * Print them where they are used (CLAUDE.md #40): Blocks 3.5 and 3.6 read this table, never an Optional block.
+ */
+export const R2_FIG = {
+  customers: 400,
+  left: 32, // 14 + 18
+  leftFell: 14, // of the 32 leavers, usage had fallen by 30% or more before they left
+  groupFell: 40, // last year's customers whose usage fell by 30% or more (14 of them left)
+  flagged: 52, // customers whose usage fell by 30% or more this quarter
+  revenue: 18000,
+  save: 30, // % of flagged customers who stay today
+  churn: 8, // % yearly churn of all customers (32 of 400)
+  managers: 10,
+  weeksQuarter: 13,
+};
+export type FigKey = keyof typeof R2_FIG | "usage" | "orders" | "tickets" | "crm" | "bar";
+export const FIG_ROW_ID = (k: string) => `r2fig-${k}`;
+
 export type ArchId = "foundation" | "health" | "playbook" | "cohort" | "training" | "quality" | "ai" | "feed";
 export const ARCH_IDS: ArchId[] = ["foundation", "health", "playbook", "cohort", "training", "quality", "ai", "feed"];
-export type ArchItem = { id: ArchId; name: string; what: string; cost: number; weeks: number; blackBox: boolean };
+/** What the trigger of an item counts (its method, CLAUDE.md #44): decides which number the kit shows. */
+export type ArchResult = "joined" | "caught" | "calls" | "gap" | "managers" | "complete";
+export type ArchItem = {
+  id: ArchId;
+  name: string;
+  /** What it is, in everyday words (CLAUDE.md #46): visible on the card, never hidden. */
+  what: string;
+  /** One concrete situation at SmartData in which the item is used. */
+  scene: string;
+  /** Who does what, and what changes. */
+  who: string;
+  /** What the item's trigger counts, in one phrase. */
+  counts: string;
+  /** What has to exist before the item can work. */
+  needs: string;
+  cost: number;
+  weeks: number;
+  /** Months after it is in use until its effect shows (0 = at once). */
+  respond: number;
+  blackBox: boolean;
+  result: ArchResult;
+};
 export const ARCH: ArchItem[] = bi([
-  { id: "foundation" as ArchId, name: t("Data foundation", "Datenbasis"), what: t("Shared definitions, and usage, order, ticket and billing data connected in one place.", "Gemeinsame Definitionen, und Nutzungs-, Bestell-, Ticket- und Zahlungsdaten an einem Ort verbunden."), cost: 45000, weeks: 8, blackBox: false },
-  { id: "health" as ArchId, name: t("Health score and early-warning rules", "Health Score und Frühwarnregeln"), what: t("The score and the rules of Block 3.4, visible in the CRM.", "Der Score und die Regeln aus Block 3.4, sichtbar im CRM."), cost: 35000, weeks: 6, blackBox: false },
-  { id: "playbook" as ArchId, name: t("Outreach playbook for customer success", "Ansprache-Playbook für Customer Success"), what: t("What to say and offer for each pattern, and how fast.", "Was bei jedem Muster zu sagen und anzubieten ist, und wie schnell."), cost: 20000, weeks: 4, blackBox: false },
-  { id: "cohort" as ArchId, name: t("Cohort and pattern dashboard", "Kohorten- und Musterdashboard"), what: t("Churn by start month and by pattern, checked against each forecast.", "Churn nach Startmonat und Muster, abgeglichen mit jeder Prognose."), cost: 20000, weeks: 4, blackBox: false },
-  { id: "training" as ArchId, name: t("Data literacy for sales managers", "Datenkompetenz für Vertriebsleiter"), what: t("How to read a score, a rate and a lift, and when not to trust them.", "Wie man einen Score, eine Rate und einen Lift liest, und wann man ihnen nicht trauen sollte."), cost: 25000, weeks: 3, blackBox: false },
-  { id: "quality" as ArchId, name: t("Data owners and a CRM quality drive", "Daten-Owner und eine CRM-Qualitätsoffensive"), what: t("A named owner per source and a push to fill the CRM notes.", "Ein benannter Owner pro Quelle und ein Schub, um die CRM-Notizen zu füllen."), cost: 20000, weeks: 6, blackBox: false },
-  { id: "ai" as ArchId, name: t("AI prediction platform licence", "Lizenz für eine KI-Vorhersageplattform"), what: t("A vendor's churn probabilities, without the reasons.", "Die Abwanderungswahrscheinlichkeiten eines Anbieters, ohne die Gründe."), cost: 70000, weeks: 12, blackBox: true },
-  { id: "feed" as ArchId, name: t("External big data feed", "Externer Big-Data-Feed"), what: t("Growth and hiring data on all German companies.", "Wachstums- und Einstellungsdaten zu allen deutschen Unternehmen."), cost: 50000, weeks: 10, blackBox: false },
+  {
+    id: "foundation" as ArchId,
+    name: t("Data foundation", "Datenbasis"),
+    what: t("One agreed customer list in which usage, orders, support tickets and invoices are joined, so every customer appears once and everyone means the same by “active” and “churned”.", "Eine abgestimmte Kundenliste, in der Nutzung, Bestellungen, Support-Tickets und Rechnungen verbunden sind, sodass jeder Kunde einmal erscheint und alle unter „aktiv“ und „abgewandert“ dasselbe verstehen."),
+    scene: t("Today the usage logs show a customer, Brenner Bau, as active while billing lists it as closed. With the foundation, everyone sees one record for Brenner Bau.", "Heute zeigen die Nutzungslogs einen Kunden, Brenner Bau, als aktiv, während die Buchhaltung ihn als beendet führt. Mit der Datenbasis sieht jeder einen Datensatz für Brenner Bau."),
+    who: t("The data team builds it together with IT. Afterwards nobody else changes how a customer is counted.", "Das Datenteam baut sie gemeinsam mit der IT. Danach ändert niemand sonst, wie ein Kunde gezählt wird."),
+    counts: t("the share of active customers whose usage, order and ticket data are joined", "der Anteil aktiver Kunden, deren Nutzungs-, Bestell- und Ticketdaten verbunden sind"),
+    needs: t("Nothing: it starts first.", "Nichts: Sie startet zuerst."),
+    cost: 45000,
+    weeks: 8,
+    respond: 0,
+    blackBox: false,
+    result: "joined" as ArchResult,
+  },
+  {
+    id: "health" as ArchId,
+    name: t("Health score and early-warning rules", "Health Score und Frühwarnregeln"),
+    what: t("A red, amber or green score for every customer, built from logins, orders, services used and tickets, with the reason shown next to it. A rule flags every customer whose usage falls by 30% or more in a quarter. It appears in the CRM, the customer database that sales and support already open every day.", "Ein roter, gelber oder grüner Wert für jeden Kunden, gebaut aus Logins, Bestellungen, genutzten Services und Tickets, mit dem Grund daneben. Eine Regel markiert jeden Kunden, dessen Nutzung in einem Quartal um 30 % oder mehr sinkt. Er erscheint im CRM, der Kundendatenbank, die Vertrieb und Support ohnehin jeden Tag öffnen."),
+    scene: t("On Monday an account manager opens the CRM and sees Fuchs Maschinen in red with the note “usage down 38%, 120 days since the last order”, and calls the same day.", "Am Montag öffnet ein Account Manager das CRM und sieht Fuchs Maschinen in Rot mit dem Hinweis „Nutzung minus 38 %, 120 Tage seit der letzten Bestellung“ und ruft noch am selben Tag an."),
+    who: t("The data team owns the score and the rules. Customer success and the account managers read it and act on it.", "Das Datenteam verantwortet Score und Regeln. Customer Success und die Account Manager lesen ihn und handeln danach."),
+    counts: t("the share of customers who cancelled that the score had flagged beforehand", "der Anteil der gekündigten Kunden, die der Score vorher markiert hatte"),
+    needs: t("The data foundation: the score reads the joined customer list.", "Die Datenbasis: Der Score liest die verbundene Kundenliste."),
+    cost: 35000,
+    weeks: 6,
+    respond: 1,
+    blackBox: false,
+    result: "caught" as ArchResult,
+  },
+  {
+    id: "playbook" as ArchId,
+    name: t("Outreach playbook for customer success", "Ansprache-Playbook für Customer Success"),
+    what: t("A one-page guide that says, for each kind of flagged customer, who calls, how fast, what to ask and what to offer.", "Ein Leitfaden auf einer Seite, der für jede Art markierter Kunden sagt, wer anruft, wie schnell, was zu fragen und was anzubieten ist."),
+    scene: t("A flagged customer's usage fell by 40% after a merger. The playbook tells the caller to ask about the merger and to offer a short joint review within two weeks.", "Bei einem markierten Kunden sank die Nutzung nach einer Fusion um 40 %. Das Playbook sagt dem Anrufer, nach der Fusion zu fragen und innerhalb von zwei Wochen ein kurzes gemeinsames Review anzubieten."),
+    who: t("The Head of Customer Success writes it and makes sure the team follows it. The customer notices a call that arrives early and knows the history.", "Die Leitung Customer Success schreibt es und sorgt dafür, dass das Team es befolgt. Der Kunde merkt einen Anruf, der früh kommt und die Vorgeschichte kennt."),
+    counts: t("how many flagged customers a week get a call", "wie viele markierte Kunden pro Woche einen Anruf bekommen"),
+    needs: t("The health score: the playbook calls the customers the score flags.", "Der Health Score: Das Playbook ruft die Kunden an, die der Score markiert."),
+    cost: 20000,
+    weeks: 4,
+    respond: 0,
+    blackBox: false,
+    result: "calls" as ArchResult,
+  },
+  {
+    id: "cohort" as ArchId,
+    name: t("Cohort and pattern dashboard", "Kohorten- und Musterdashboard"),
+    what: t("A dashboard that groups customers (by the month they started, or by how their usage moves, for example “keeps falling”) and shows the churn of each group next to the churn that was forecast for it.", "Ein Dashboard, das Kunden gruppiert (nach dem Startmonat oder danach, wie ihre Nutzung verläuft, zum Beispiel „sinkt ständig“) und den Churn jeder Gruppe neben dem prognostizierten Churn zeigt."),
+    scene: t("The dashboard shows that customers who started in January left twice as often as those who started in June. The team asks what January's onboarding missed.", "Das Dashboard zeigt, dass Kunden, die im Januar starteten, doppelt so oft gingen wie die vom Juni. Das Team fragt, was dem Onboarding im Januar fehlte."),
+    who: t("The data team keeps it up to date; the team meeting reads it once a month and changes a rule when a forecast was off.", "Das Datenteam hält es aktuell; das Teammeeting liest es einmal im Monat und ändert eine Regel, wenn eine Prognose danebenlag."),
+    counts: t("how far a group's forecast churn is from its actual churn, in percentage points", "wie weit der prognostizierte Churn einer Gruppe vom tatsächlichen entfernt ist, in Prozentpunkten"),
+    needs: t("The data foundation: the groups come from the joined customer list.", "Die Datenbasis: Die Gruppen kommen aus der verbundenen Kundenliste."),
+    cost: 20000,
+    weeks: 4,
+    respond: 1,
+    blackBox: false,
+    result: "gap" as ArchResult,
+  },
+  {
+    id: "training" as ArchId,
+    name: t("Data literacy for sales managers", "Datenkompetenz für Vertriebsleiter"),
+    what: t("A short training for the sales managers on how to read a score, a rate and a lift, and on when not to trust them, for example when only a few customers stand behind a number.", "Eine kurze Schulung für die Vertriebsleiter, wie man einen Score, eine Rate und einen Lift liest und wann man ihnen nicht trauen sollte, zum Beispiel wenn nur wenige Kunden hinter einer Zahl stehen."),
+    scene: t("A sales manager sees a lift of 5 based on 12 customers. After the training she asks “how many cases?” before she changes her account plan.", "Eine Vertriebsleiterin sieht einen Lift von 5, beruhend auf 12 Kunden. Nach der Schulung fragt sie „wie viele Fälle?“, bevor sie ihren Account-Plan ändert."),
+    who: t("The Head of Sales puts the sessions into the team meetings. The managers then plan their accounts with the score, not only from memory.", "Die Vertriebsleitung legt die Einheiten in die Teammeetings. Die Manager planen ihre Accounts dann mit dem Score, nicht nur aus dem Gedächtnis."),
+    counts: t("how many sales managers use the score in their account plans", "wie viele Vertriebsleiter den Score in ihren Account-Plänen nutzen"),
+    needs: t("The health score: the managers learn to read it.", "Der Health Score: Die Manager lernen, ihn zu lesen."),
+    cost: 25000,
+    weeks: 3,
+    respond: 1,
+    blackBox: false,
+    result: "managers" as ArchResult,
+  },
+  {
+    id: "quality" as ArchId,
+    name: t("Data owners and a CRM quality drive", "Daten-Owner und eine CRM-Qualitätsoffensive"),
+    what: t("A named person for each data source who answers for how complete it is, and a push to fill the CRM notes that account managers leave half empty.", "Eine benannte Person für jede Datenquelle, die dafür einsteht, wie vollständig sie ist, und ein Schub, die CRM-Notizen zu füllen, die Account Manager halb leer lassen."),
+    scene: t("Only 45 of 100 accounts have CRM notes. The owner reviews the gaps every week, and an account manager adds what was promised to Eifel Energie.", "Nur 45 von 100 Accounts haben CRM-Notizen. Der Owner prüft die Lücken jede Woche, und ein Account Manager trägt nach, was Eifel Energie versprochen wurde."),
+    who: t("The data team names the owners; the Head of Sales makes filling the notes part of the weekly pipeline review.", "Das Datenteam benennt die Owner; die Vertriebsleitung macht das Füllen der Notizen zum Teil des wöchentlichen Pipeline-Reviews."),
+    counts: t("the share of accounts whose CRM notes are complete", "der Anteil der Accounts mit vollständigen CRM-Notizen"),
+    needs: t("Nothing, but the foundation should not start later than this item.", "Nichts, aber die Datenbasis sollte nicht später starten als dieser Punkt."),
+    cost: 20000,
+    weeks: 6,
+    respond: 1,
+    blackBox: false,
+    result: "complete" as ArchResult,
+  },
+  {
+    id: "ai" as ArchId,
+    name: t("AI prediction platform licence", "Lizenz für eine KI-Vorhersageplattform"),
+    what: t("A vendor's service that gives every customer a churn probability each day. The vendor does not show how it reaches a score.", "Ein Dienst eines Anbieters, der jedem Kunden täglich eine Abwanderungswahrscheinlichkeit gibt. Der Anbieter zeigt nicht, wie er zu einem Wert kommt."),
+    scene: t("The platform marks Delta Kliniken at 0.82. Asked why, the vendor says “the model weighs many signals”. The account manager has nothing to say to the customer.", "Die Plattform bewertet Delta Kliniken mit 0,82. Auf die Frage, warum, sagt der Anbieter „das Modell gewichtet viele Signale“. Der Account Manager hat dem Kunden nichts zu sagen."),
+    who: t("The Chief Data Officer or the data team would own it. Customer success would receive scores without reasons.", "Die Chief Data Officer oder das Datenteam würde sie verantworten. Customer Success bekäme Werte ohne Gründe."),
+    counts: t("the share of customers who cancelled that the platform had flagged beforehand", "der Anteil der gekündigten Kunden, die die Plattform vorher markiert hatte"),
+    needs: t("The data foundation: the platform reads the joined customer list.", "Die Datenbasis: Die Plattform liest die verbundene Kundenliste."),
+    cost: 70000,
+    weeks: 12,
+    respond: 1,
+    blackBox: true,
+    result: "caught" as ArchResult,
+  },
+  {
+    id: "feed" as ArchId,
+    name: t("External big data feed", "Externer Big-Data-Feed"),
+    what: t("A purchased data set about the growth and hiring of German companies, matched to SmartData's customers.", "Ein gekaufter Datensatz zu Wachstum und Einstellungen deutscher Unternehmen, abgeglichen mit den Kunden von SmartData."),
+    scene: t("The feed says a customer grew by 12%. Nothing in it says how that customer uses SmartData, so no account manager's decision changes.", "Der Feed sagt, dass ein Kunde um 12 % gewachsen ist. Nichts darin sagt, wie dieser Kunde SmartData nutzt, also ändert sich keine Entscheidung eines Account Managers."),
+    who: t("The Chief Data Officer would own it. The data team would spend its weeks matching names, not reading customers.", "Die Chief Data Officer würde ihn verantworten. Das Datenteam würde seine Wochen damit verbringen, Namen abzugleichen, statt Kunden zu lesen."),
+    counts: t("the share of customers matched to the data set", "der Anteil der Kunden, die dem Datensatz zugeordnet sind"),
+    needs: t("The data foundation: the feed is matched to the joined customer list.", "Die Datenbasis: Der Feed wird mit der verbundenen Kundenliste abgeglichen."),
+    cost: 50000,
+    weeks: 10,
+    respond: 1,
+    blackBox: false,
+    result: "complete" as ArchResult,
+  },
 ]);
 export const ARCH_BY_ID = Object.fromEntries(ARCH.map((a) => [a.id, a])) as Record<ArchId, ArchItem>;
+/** One word per item for the budget bar, so no two segments carry the same label. */
+export const ARCH_SHORT = bi({
+  foundation: t("Foundation", "Basis"),
+  health: t("Score", "Score"),
+  playbook: t("Playbook", "Playbook"),
+  cohort: t("Dashboard", "Dashboard"),
+  training: t("Training", "Schulung"),
+  quality: t("Quality", "Qualität"),
+  ai: t("AI", "KI"),
+  feed: t("Feed", "Feed"),
+}) as Record<ArchId, string>;
 export const BASELINE_ITEM: ArchId = "foundation";
+/** Items that act on the customers the score flags: their cost is what the tripwire has to earn back (CLAUDE.md #44). */
+export const CUSTOMER_ITEMS: ArchId[] = ["health", "playbook", "ai"];
+export const setupMonths = (weeks: number) => Math.ceil(weeks / 4);
 
 export type OwnerId = "cdo" | "datalead" | "cslead" | "saleslead" | "it";
 export const OWNER_IDS: OwnerId[] = ["cdo", "datalead", "cslead", "saleslead", "it"];
@@ -155,13 +314,16 @@ export const OWNER_ACCEPT: Record<ArchId, OwnerId[]> = {
 };
 export const MODEL_ARCH: ArchId[] = ["foundation", "health", "playbook", "cohort", "training", "quality"];
 export const MODEL_START: Partial<Record<ArchId, number>> = { foundation: 1, quality: 1, health: 2, playbook: 3, cohort: 3, training: 3 };
+/** The model trigger of each item. Every number is found from "SmartData today" by the methods of Materi B6 (lib/numbersR2.ts). */
 export const MODEL_TRIGGER = bi({
-  foundation: t("If fewer than 95% of active customers have usage, order and ticket data joined by month 2, the health score waits and the gaps are fixed first.", "Haben bis Monat 2 weniger als 95 % der aktiven Kunden verbundene Nutzungs-, Bestell- und Ticketdaten, wartet der Health Score, und zuerst werden die Lücken geschlossen."),
-  health: t("If the score flags fewer than 60% of the customers who cancel in months 3 and 4, the Head of Data re-weights it in month 5.", "Markiert der Score weniger als 60 % der Kunden, die in Monat 3 und 4 kündigen, gewichtet ihn die Leitung Data in Monat 5 neu."),
-  playbook: t("If fewer than 80% of flagged customers are called within two weeks by month 4, customer success gets a second caller.", "Werden bis Monat 4 weniger als 80 % der markierten Kunden innerhalb von zwei Wochen angerufen, bekommt Customer Success einen zweiten Anrufer."),
-  cohort: t("If a forecast misses the actual churn of its group by more than 5 points in a quarter, the rule behind it is reviewed.", "Verfehlt eine Prognose den tatsächlichen Churn ihrer Gruppe in einem Quartal um mehr als 5 Punkte, wird die Regel dahinter überprüft."),
-  training: t("If fewer than 70% of sales managers use the score in their account plans by month 5, the training is repeated in their team meetings.", "Nutzen bis Monat 5 weniger als 70 % der Vertriebsleiter den Score in ihren Account-Plänen, wird die Schulung in ihren Teammeetings wiederholt."),
-  quality: t("If CRM notes are still less than 70% complete by month 4, filling them becomes part of the weekly pipeline review.", "Sind die CRM-Notizen bis Monat 4 immer noch zu weniger als 70 % vollständig, wird ihr Ausfüllen Teil des wöchentlichen Pipeline-Reviews."),
+  foundation: t("If fewer than 90% of active customers have usage, order and ticket data joined by month 3, the health score waits and the gaps are fixed first.", "Haben bis Monat 3 weniger als 90 % der aktiven Kunden verbundene Nutzungs-, Bestell- und Ticketdaten, wartet der Health Score, und zuerst werden die Lücken geschlossen."),
+  health: t("If by month 5 the score had flagged fewer than 70% of the customers who cancelled, the Head of Data re-weights it.", "Hatte der Score bis Monat 5 weniger als 70 % der gekündigten Kunden vorher markiert, gewichtet ihn die Leitung Data neu."),
+  playbook: t("If fewer than 4 flagged customers a week get a call by month 4, customer success gets a second caller.", "Bekommen bis Monat 4 weniger als 4 markierte Kunden pro Woche einen Anruf, bekommt Customer Success einen zweiten Anrufer."),
+  cohort: t("If a group's forecast churn is more than 5 points away from its actual churn by month 5, the rule behind that forecast is reviewed.", "Liegt der prognostizierte Churn einer Gruppe bis Monat 5 mehr als 5 Punkte neben dem tatsächlichen, wird die Regel hinter der Prognose überprüft."),
+  training: t("If fewer than 7 of the 10 sales managers use the score in their account plans by month 5, the training is repeated in their team meetings.", "Nutzen bis Monat 5 weniger als 7 der 10 Vertriebsleiter den Score in ihren Account-Plänen, wird die Schulung in ihren Teammeetings wiederholt."),
+  quality: t("If the CRM notes are less than 80% complete by month 4, filling them becomes part of the weekly pipeline review.", "Sind die CRM-Notizen bis Monat 4 zu weniger als 80 % vollständig, wird ihr Ausfüllen Teil des wöchentlichen Pipeline-Reviews."),
+  ai: t("If by month 5 the platform had flagged fewer than 70% of the customers who cancelled, the licence is not renewed.", "Hatte die Plattform bis Monat 5 weniger als 70 % der gekündigten Kunden vorher markiert, wird die Lizenz nicht verlängert."),
+  feed: t("If fewer than 80% of customers are matched to the data set by month 5, the feed is stopped.", "Sind bis Monat 5 weniger als 80 % der Kunden dem Datensatz zugeordnet, wird der Feed gestoppt."),
 });
 
 /* ------------------------------------------------------------------ 3.6 · the decision under uncertain data */
@@ -183,11 +345,14 @@ export const KPIS = bi([
   { id: "reports" as KpiId, label: t("Data reports sent per month", "Versendete Datenberichte pro Monat"), unit: t("reports", "Berichte"), baseline: 20, better: "up" as const, behaviour: false },
 ]);
 export const KPI_BY_ID = Object.fromEntries(KPIS.map((k) => [k.id, k])) as Record<KpiId, (typeof KPIS)[number]>;
-export const MODEL_TRIPWIRE = { kpi: "saved" as KpiId, threshold: 45, month: 5 };
+/** The model tripwire: today's 30% plus the step the funded customer items need to pay back (lib/numbersR2.ts, "trip": 30 + 4 × 100 ÷ 52 = 37.7, rounded up). */
+export const MODEL_TRIPWIRE = { kpi: "saved" as KpiId, threshold: 38, month: 5 };
 export const R2_BASELINE_NOTE = bi({ v: t("Baselines are Case assumptions from SmartData's contract and usage data of the last twelve months.", "Die Ausgangswerte sind Fallannahmen aus den Vertrags- und Nutzungsdaten von SmartData der letzten zwölf Monate.") });
+/** The numbers of the board's challenge, so the "numbers you can use" panel reads them from one place. */
+export const BOARD_FACTS = { flags: 60, falseAlarms: 15, complaints: 3 };
 export const BOARD_CHALLENGE = bi({
   v: t(
-    "It is month 3. The early-warning rules flagged 60 customers. Fifteen of them were project customers in their quiet season, and three complained about being called. The Head of Sales wants to stop the data programme and go back to account managers' judgement. The board asks what you do.",
-    "Es ist Monat 3. Die Frühwarnregeln haben 60 Kunden markiert. Fünfzehn davon waren Projektkunden in ihrer ruhigen Saison, und drei beschwerten sich über den Anruf. Die Vertriebsleitung will das Datenprogramm stoppen und zum Urteil der Account Manager zurückkehren. Der Vorstand fragt, was Sie tun.",
+    "It is month 4. The early-warning rules have flagged 60 customers. Fifteen of them were project customers in their quiet season: they use SmartData in bursts and always go quiet for a few months, so the rule flagged them wrongly. Three customers complained about being called. The Head of Sales wants to stop the data programme and go back to account managers' judgement. The board asks what you do.",
+    "Es ist Monat 4. Die Frühwarnregeln haben 60 Kunden markiert. Fünfzehn davon waren Projektkunden in ihrer ruhigen Saison: Sie nutzen SmartData in Schüben und werden immer für ein paar Monate still, die Regel hat sie also zu Unrecht markiert. Drei Kunden beschwerten sich über den Anruf. Die Vertriebsleitung will das Datenprogramm stoppen und zum Urteil der Account Manager zurückkehren. Der Vorstand fragt, was Sie tun.",
   ),
 });

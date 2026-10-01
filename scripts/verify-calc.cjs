@@ -102,6 +102,99 @@ eq("model architecture cost", archCost, 165000);
 ok("model architecture inside the budget", archCost <= r2.R2_BUDGET);
 ok("adding the AI platform breaks the budget", archCost + r2.ARCH_BY_ID.ai.cost > r2.R2_BUDGET);
 
+// --- Route 2 numbers: every number is found from the printed figures (CLAUDE.md #44, Materi B6) -------------------
+const calcR2 = require("@/lib/calcR2");
+const modelState = () => calcR2.modelR2(Object.fromEntries(r2.MODEL_ARCH.map((id) => [id, true])), { ...r2.MODEL_START });
+{
+  const ms = modelState();
+  const nv = (k) => calcR2.numberView(k, ms);
+  eq("SmartData today: 14 + 18 leavers, 400 customers, 8% churn", [r2.R2_FIG.left, r2.R2_FIG.customers, Math.round((r2.R2_FIG.left / r2.R2_FIG.customers) * 100)], [32, 400, 8]);
+  eq("SmartData today agrees with Route 1's records", [fc.SMART.falling.left + fc.SMART.stable.left, fc.SMART.falling.customers + fc.SMART.stable.customers, r2.R2_FIG.flagged, r2.R2_FIG.groupFell, r2.R2_FIG.revenue], [32, 400, fc.SMART.fallingNow, fc.SMART.falling.customers, fc.SMART.revenue]);
+  eq("trigger number: foundation = weakest of usage, orders, tickets", nv("trig-foundation").result, 90);
+  eq("trigger number: health = half the gap from 14 of 32, to the nearest 5", nv("trig-health").result, 70);
+  eq("trigger number: playbook = 52 ÷ 13 rounded up", nv("trig-playbook").result, 4);
+  eq("trigger number: cohort = two customers of 40", nv("trig-cohort").result, 5);
+  eq("trigger number: training = two thirds of 10 rounded up", nv("trig-training").result, 7);
+  eq("trigger number: quality = the quality bar", nv("trig-quality").result, 80);
+  eq("month of each model item = start + set-up + effect", r2.MODEL_ARCH.map((id) => nv("month-" + id).result), [3, 5, 4, 5, 5, 4]);
+  eq("pickup number of the AI platform = 70,000 ÷ 18,000 rounded up", nv("pickup-ai").result, 4);
+  eq("tripwire threshold = 30 + ⌈55,000 ÷ 18,000⌉ × 100 ÷ 52, rounded up", nv("trip").result, r2.MODEL_TRIPWIRE.threshold);
+  eq("tripwire month = the latest customer item month", calcR2.tripMonth(ms).month, r2.MODEL_TRIPWIRE.month);
+  eq("false alarms of the board's challenge = 15 of 60", nv("challenge").result, 25);
+  for (const id of r2.MODEL_ARCH) {
+    const n = nv("trig-" + id).result;
+    ok("model trigger of " + id + " names its number " + n, r2.MODEL_TRIGGER[id].includes(String(n)));
+    const m = nv("month-" + id).result;
+    ok("model trigger of " + id + " names its month " + m, r2.MODEL_TRIGGER[id].includes("month " + m));
+    ok("month of " + id + " is inside the plan", m <= r2.R2_MONTHS);
+  }
+  ok("every item has a number, a month and a pickup view", Object.keys(r2.ARCH_BY_ID).every((id) => Number.isFinite(nv("trig-" + id).result) && Number.isFinite(nv("month-" + id).result) && Number.isFinite(nv("pickup-" + id).result)));
+  ok("every input of every number links to an element", Object.keys(r2.ARCH_BY_ID).every((id) => ["trig-", "pickup-"].every((k) => nv(k + id).sources.every((x) => x.target))));
+  const ka = key.KEY_R2();
+  ok("model assumptions use the numbers of the kit", ka.assumptions[0].includes("70%") && ka.assumptions[1].includes("38%") && ka.assumptions[2].includes("90%"));
+  ok("model pickup uses the cost-of-waiting number", ka.pickup.includes("4 or more") || ka.pickup.includes("mindestens 4"));
+  ok("model tripwire is better than today", r2.MODEL_TRIPWIRE.threshold > r2.KPI_BY_ID.saved.baseline);
+  eq("not-ready: month without a start month", calcR2.numberView("month-health", { alloc: {}, start: {}, owner: {} }).ready !== null, true);
+  eq("not-ready: tripwire without a funded customer item", calcR2.numberView("trip", { alloc: {}, start: {}, owner: {} }).ready !== null, true);
+}
+const tk = require("@/data/triggerKit");
+ok("every item has a metric with its reason and three actions with reasons", Object.keys(r2.ARCH_BY_ID).every((id) => { const k = tk.TRIGGER_KIT[id]; return k && k.metric && k.metricWhy && k.actions.length === 3 && k.actions.every((a) => a.text && a.why) && k.reason; }));
+ok("the first action of each model item is the model trigger's own", r2.MODEL_ARCH.every((id) => { const a = tk.TRIGGER_KIT[id].actions[0].text; return r2.MODEL_TRIGGER[id].includes(a); }));
+ok("no printed answer text of the learner-facing parts names an Optional block or card (Block 3.1 to 3.4, Materi B1 to B4)", (() => {
+  const src = (f) => fs.readFileSync(path.join(root, f), "utf8");
+  const blocks = src("components/task2/Blocks.tsx");
+  const core = blocks.slice(blocks.indexOf("/* ---- Block 3.5 */".replace("---- ", "------------------------------------------------------------------ ")));
+  const texts = [core, src("components/task2/Kits.tsx"), src("data/triggerKit.ts"), src("lib/calcR2.ts"), src("data/route2.ts").slice(src("data/route2.ts").indexOf("3.5 · prioritised"))];
+  return texts.every((t) => !/Blocks? 3\.[1-4]\b|Materi B[1-4]\b/.test(t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "")));
+})());
+ok("no Core block of Route 1 names an Optional block or card (Block 1.3, 1.4, 2.2, Materi A3)", (() => {
+  const p1 = fs.readFileSync(path.join(root, "components/task1/Part1.tsx"), "utf8");
+  const p2 = fs.readFileSync(path.join(root, "components/task1/Part2.tsx"), "utf8");
+  const slice = (src, a, b) => src.slice(src.indexOf(a), b ? src.indexOf(b) : undefined);
+  const parts = [slice(p1, "export function Block11", "export function Block13"), slice(p2, "export function Block21", "export function Block22"), slice(p2, "export function Block23")];
+  return parts.every((t) => !/Block 1\.[34]\b|Block 2\.2\b|Materi A3\b/.test(t.replace(/\/\*[\s\S]*?\*\//g, "")));
+})());
+
+// --- Core and Optional (CLAUDE.md #35, #40) ---------------------------------------------
+{
+  const optional = progress.OPTIONAL_BLOCKS;
+  eq("Route 1 has four Core blocks", ["b11", "b12", "b13", "b14", "b21", "b22", "b23"].filter((b) => !optional.includes(b)), ["b11", "b12", "b21", "b23"]);
+  eq("Route 2 Core blocks", ["b31", "b32", "b33", "b34", "b35", "b36"].filter((b) => !optional.includes(b)), ["b35", "b36"]);
+  const mi = require("@/data/materialIndex");
+  eq("Optional cards", mi.MATERIALS.filter((m) => m.optional).map((m) => m.id), ["A3", "B1", "B2", "B3", "B4"]);
+  eq("Materi A minutes add up to 60", mi.MATERIALS.filter((m) => m.block === "A").reduce((s, m) => s + m.minutes, 0), 60);
+  eq("Materi B minutes add up to 60", mi.MATERIALS.filter((m) => m.block === "B").reduce((s, m) => s + m.minutes, 0), 60);
+  // Core-only fill: only the Core fields are entered, and both missing lists must be empty (Optional blocks are never required).
+  for (const l of ["en", "de"]) {
+    lang.setCurrentLang(l);
+    const k1 = key.KEY_L1();
+    const l1 = { ...store.emptyL1(), sort: k1.sort, extraInsight: k1.extraInsight, fig: k1.fig, parts: calc.modelParts(calc.FIGURE_BUILDERS), meaning: k1.meaning, tags: k1.tags, chosen: k1.chosen, aims: k1.aims, exp: k1.exp, fea: k1.fea, eff: k1.eff, order: k1.order, why: k1.why };
+    const k2 = key.KEY_R2();
+    const rr = { ...store.emptyR2(), alloc: k2.alloc, start: k2.start, owner: k2.owner, trigger: k2.trigger, postponed: k2.postponed, pickup: k2.pickup, decision: k2.decision, assumptions: k2.assumptions, tripKpi: k2.tripKpi, tripThreshold: k2.tripThreshold, tripMonth: k2.tripMonth, tripAction: k2.tripAction, challenge: k2.challenge };
+    const p = { participant: { name: "Core Only" }, ui: { bannerDismissed: {}, sectionsRead: {}, lang: l }, l1, r2: rr };
+    eq("[" + l + "] Core-only fill leaves Route 1's missing list empty", missing.l1Missing(p).map((m) => m.label), []);
+    eq("[" + l + "] Core-only fill leaves Route 2's missing list empty", missing.r2Missing(p).map((m) => m.label), []);
+    const prog1 = progress.dossierProgress({ ...p, ui: { ...p.ui, sectionsRead: Object.fromEntries(mi.MATERIALS.filter((m) => !m.optional).map((m) => [m.id, true])) } }, 1);
+    eq("[" + l + "] Route 1 ring is full on Core only", prog1.done, prog1.total);
+    // an over-budget plan with a reason still exports (decision part, CLAUDE.md #38)
+    const over = { ...rr, alloc: { ...rr.alloc, ai: true, feed: true }, start: { ...rr.start, ai: 1, feed: 1 }, owner: { ...rr.owner, ai: "cdo", feed: "cdo" }, trigger: { ...rr.trigger, ai: "If by month 5 the platform flagged fewer than 70% of cancellations, stop it.", feed: "If fewer than 80% of customers are matched by month 5, stop the feed." } };
+    eq("[" + l + "] an over-budget plan with every field filled is not missing anything", missing.r2Missing({ ...p, r2: over }).map((m) => m.label), []);
+  }
+  lang.setCurrentLang("en");
+}
+
+// --- key phrases and examples ----------------------------------------------------------------
+for (const l of ["en", "de"]) {
+  lang.setCurrentLang(l);
+  ok("[" + l + "] every sort line holds its key phrase as an exact substring", ld.LINES.every((x) => x.text.includes(ld.LINE_KEY[x.id])));
+  ok("[" + l + "] every record holds its key phrase as an exact substring", pt.RECORDS.every((x) => x.text.includes(pt.REC_KEY[x.id])));
+  const mg = require("@/lib/mentorGuide");
+  const guides = [mg.meaningGuide(), mg.insightGuide(0), mg.insightGuide(1), mg.insightGuide(2), mg.whyGuide(), mg.greatestGuide(), mg.postponedGuide(), mg.challengeGuide(), mg.tripwireGuide(), mg.assumptionGuide(0), mg.assumptionGuide(1), mg.assumptionGuide(2), ...r2.MODEL_ARCH.map((id) => mg.triggerGuide(id))];
+  ok("[" + l + "] every graded free-text field has a learner example that differs from the model answer", guides.every((g) => g.example && g.example !== g.answer));
+  ok("[" + l + "] no example repeats a number of the model answer's own figures (the case's results)", [mg.meaningGuide().example].every((e) => !e.includes("327") && !e.includes("35%")));
+}
+lang.setCurrentLang("en");
+
 // --- the mentor fill, in both languages --------------------------------------------
 for (const l of ["en", "de"]) {
   lang.setCurrentLang(l);
